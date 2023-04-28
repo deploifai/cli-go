@@ -1,0 +1,12 @@
+query GetAccounts {
+    me {
+        account {
+            username
+        }
+        teams {
+            account {
+                username
+            }
+        }
+    }
+}

@@ -1,7 +1,6 @@
 package command_config
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -28,9 +27,4 @@ func SetDefaultConfig(v *viper.Viper) {
 func (c *Config) WriteStructIntoConfig(v *viper.Viper) {
 	v.Set("auth", c.Auth)
 	v.Set("workspace", c.Workspace)
-}
-
-func GetConfig(cmd *cobra.Command) *Config {
-	// perform type assertion
-	return cmd.Root().Context().Value("config").(*Config)
 }

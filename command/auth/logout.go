@@ -23,14 +23,14 @@ package auth
 
 import (
 	"errors"
-	"github.com/deploifai/cli-go/command/command_config"
+	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/spf13/cobra"
 )
 
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Logout",
+	Short: "Logout.",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -38,7 +38,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_config := command_config.GetConfig(cmd)
+		_config := ctx.GetContextValue(cmd).Config
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			return errors.New("you are not logged in")

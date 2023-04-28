@@ -25,7 +25,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/deploifai/cli-go/command/command_config"
+	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"net/http"
@@ -41,7 +41,7 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login using a username and a personal access token.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_config := command_config.GetConfig(cmd)
+		_config := ctx.GetContextValue(cmd).Config
 
 		if _config.Auth.Username != "" && _config.Auth.Token != "" {
 			return errors.New("already logged in, try logging out first")

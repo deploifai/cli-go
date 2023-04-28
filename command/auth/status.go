@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/deploifai/cli-go/command/command_config"
+	"github.com/deploifai/cli-go/command/ctx"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_config := command_config.GetConfig(cmd)
+		_config := ctx.GetContextValue(cmd).Config
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			cmd.Println("Not logged in.")
@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 
 		request, err := http.NewRequest("POST", loginUrl, bytes.NewBuffer(jsonData))
 		request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-		request.Header.Set("authorization", _config.Auth.Token)
+		request.Header.Set("Authorization", _config.Auth.Token)
 		cobra.CheckErr(err)
 
 		client := &http.Client{}
@@ -55,8 +55,6 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	Cmd.AddCommand(statusCmd)
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

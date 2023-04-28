@@ -24,8 +24,11 @@ package command
 import (
 	"errors"
 	"fmt"
+	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/auth"
 	"github.com/deploifai/cli-go/command/command_config"
+	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/command/workspace"
 	"golang.org/x/net/context"
 	"os"
 	"path/filepath"
@@ -80,6 +83,7 @@ func Execute() {
 func init() {
 	// Add groups of commands
 	rootCmd.AddCommand(auth.Cmd)
+	rootCmd.AddCommand(workspace.Cmd)
 
 	cobra.OnInitialize(initConfig)
 
@@ -141,6 +145,7 @@ func initConfig() {
 	cobra.CheckErr(err)
 
 	// Create root command context
-	_context := context.WithValue(context.Background(), "config", &C)
+	value := ctx.NewContextValue(&C, api.New("", C.Auth.Token))
+	_context := context.WithValue(context.Background(), "value", value)
 	rootCmd.SetContext(_context)
 }

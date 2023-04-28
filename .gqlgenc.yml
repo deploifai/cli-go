@@ -1,0 +1,17 @@
+model:
+  filename: ./api/generated/models_gen.go
+client:
+  filename: ./api/generated/client.go
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  DateTime:
+    model: github.com/99designs/gqlgen/graphql.Time
+endpoint:
+  url: https://api.deploif.ai/graphql
+query:
+  - "./command/**/*.gql"
+  - "./command/**/*.graphql"
+generate:
+  clientV2: true
+  clientInterfaceName: "GQLClient"
