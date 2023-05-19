@@ -26,9 +26,11 @@ import (
 	"fmt"
 	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/auth"
+	"github.com/deploifai/cli-go/command/cloud_profile"
 	"github.com/deploifai/cli-go/command/command_config"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/command/workspace"
+	"github.com/deploifai/cli-go/host"
 	"golang.org/x/net/context"
 	"os"
 	"path/filepath"
@@ -82,8 +84,7 @@ func Execute() {
 
 func init() {
 	// Add groups of commands
-	rootCmd.AddCommand(auth.Cmd)
-	rootCmd.AddCommand(workspace.Cmd)
+	rootCmd.AddCommand(auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
 
 	cobra.OnInitialize(initConfig)
 
@@ -145,7 +146,7 @@ func initConfig() {
 	cobra.CheckErr(err)
 
 	// Create root command context
-	value := ctx.NewContextValue(&C, api.New("", C.Auth.Token))
+	value := ctx.NewContextValue(&C, api.New(host.Endpoint.GraphQL, C.Auth.Token))
 	_context := context.WithValue(context.Background(), "value", value)
 	rootCmd.SetContext(_context)
 }
