@@ -26,12 +26,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/host"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"net/http"
 )
-
-const backendUrl = "https://api.deploif.ai"
 
 var username string
 var token string
@@ -77,7 +76,7 @@ var loginCmd = &cobra.Command{
 			token = result
 		}
 
-		loginUrl := backendUrl + "/auth/login/cli"
+		loginUrl := host.Endpoint.Auth.Login
 
 		var jsonData = []byte(fmt.Sprintf(`{"username": "%s"}`, username))
 

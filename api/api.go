@@ -10,22 +10,19 @@ import (
 )
 
 type API struct {
-	BackendUrl string
+	Endpoint string
 
 	AuthToken string
 
 	Client generated.GQLClient
 }
 
-func New(backendUrl string, authToken string) *API {
-	if backendUrl == "" {
-		backendUrl = "https://api.deploif.ai/graphql"
-	}
+func New(endpoint string, authToken string) *API {
 
 	return &API{
-		BackendUrl: backendUrl,
-		AuthToken:  authToken,
-		Client: generated.NewClient(http.DefaultClient, backendUrl, nil,
+		Endpoint:  endpoint,
+		AuthToken: authToken,
+		Client: generated.NewClient(http.DefaultClient, endpoint, nil,
 			func(ctx context.Context, req *http.Request, gqlInfo *clientv2.GQLRequestInfo, res interface{}, next clientv2.RequestInterceptorFunc) error {
 				req.Header.Set("Authorization", authToken)
 				//fmt.Println("intercepted request", req)

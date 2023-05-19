@@ -27,10 +27,8 @@ to quickly create a Cobra application.`,
 			cobra.CheckErr(api.ProcessError(err))
 		}
 
-		_config := ctx.GetContextValue(cmd).Config
-
 		// print personal workspace
-		cmd.Println(_config.Workspace.Username, "<Personal>")
+		cmd.Println(data.Me.Account.Username, "<Personal>")
 
 		for i := range data.Me.Teams {
 			cmd.Println(data.Me.Teams[i].Account.Username, "<Team>")

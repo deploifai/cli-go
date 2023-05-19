@@ -9,8 +9,9 @@ import (
 
 // Cmd represents the workspace command
 var Cmd = &cobra.Command{
-	Use:   "workspace",
-	Short: "Manage the current workspace used.",
+	Use:     "workspace",
+	Aliases: []string{"ws"},
+	Short:   "Manage the current workspace used.",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
