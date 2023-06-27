@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/api/generated"
+	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -19,17 +20,19 @@ var cloudProvider generated.CloudProvider
 // Cmd represents the create command
 var Cmd = &cobra.Command{
 	Use:   "create",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Create a cloud profile in the current workspace.",
+	Long: `Create cloud credentials for a cloud provider to be used to provision resources in the current workspace.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Currently supported cloud providers:
+- AWS
+- Azure
+- GCP
+`,
 	Args: cobra.ExactArgs(1), // requires exactly 1 arg, which is the name of the new cloud profile
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cloudProfileName := args[0]
 
+		// todo: remove this println
 		fmt.Println("create called", cloudProfileName, cloudProvider)
 
 		if cloudProvider == "" {
@@ -56,7 +59,7 @@ to quickly create a Cobra application.`,
 
 		// todo: remove this once Digital Ocean is supported
 		if cloudProvider == generated.CloudProviderDigitalOcean {
-			return errors.New("Digital Ocean is not yet supported")
+			return errors.New("Digital Ocean is not supported yet")
 		}
 
 		api := ctx.GetContextValue(cmd).API
@@ -67,10 +70,20 @@ to quickly create a Cobra application.`,
 		if collision, err := checkCollision(cmd.Context(), *api, _config.Workspace.Username, cloudProfileName, cloudProvider); err != nil {
 			cobra.CheckErr(err)
 		} else if collision {
-			return errors.New(fmt.Sprintf("%s already exists", cloudProfileName))
+			return errors.New(fmt.Sprintf("%s for %s already exists in the current workspace", cloudProfileName, cloudProvider))
 		}
 
-		// todo: create cloud profile
+		createInput, err := createCredentialsOnProvider(cmd.Context(), cloudProfileName, cloudProvider)
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+
+		cloudProfile, err := createCloudProfile(cmd.Context(), *api, _config.Workspace.Username, createInput)
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+
+		cmd.Printf("Successfully created cloud profile %s\n", cloudProfile.Name)
 
 		return nil
 	},
@@ -107,23 +120,47 @@ func checkCollision(c context.Context, api api.API, username string, cloudProfil
 	return len(data.CloudProfiles) > 0, nil
 }
 
-func createCloudProfile(c context.Context, api api.API, username string, cloudProfileName string, provider generated.CloudProvider) (*generated.CreateCloudProfile, error) {
-	client := api.GetClient()
+func createCredentialsOnProvider(ctx context.Context, name string, provider generated.CloudProvider) (createInput generated.CloudProfileCreateInput, err error) {
 
-	createInput := generated.CloudProfileCreateInput{
-		Name:     "test",
-		Provider: generated.CloudProviderAws,
+	createInput = generated.CloudProfileCreateInput{
+		Name:     name,
+		Provider: provider,
 	}
-	//createInput.AwsCredentials = &generated.AWSCredentials{
-	//	AwsAccessKey:       awsAccessKey,
-	//	AwsSecretAccessKey: awsSecretKey,
-	//}
 
-	data, err := client.CreateCloudProfile(c, username, createInput)
+	credentialsCreatorWrapper := NewCredentialsCreatorWrapper(ctx, provider)
+
+	profiles, err := credentialsCreatorWrapper.credentialsCreator.getProfiles()
+	if err != nil {
+		return createInput, err
+	}
+
+	profile, err := credentialsCreatorWrapper.promptProfile(profiles)
+	if err != nil {
+		return createInput, err
+	}
+
+	credentials, err := credentialsCreatorWrapper.credentialsCreator.createCredentials(profile, name)
+	if err != nil {
+		return createInput, err
+	}
+
+	credentialsCreatorWrapper.populateInput(&createInput, credentials)
+
+	return createInput, err
+}
+
+func createCloudProfile(ctx context.Context, _api api.API, username string, input generated.CloudProfileCreateInput) (*generated.CreateCloudProfile_CreateCloudProfile, error) {
+	client := _api.GetClient()
+
+	f := utils.CallWithRetries[*generated.CreateCloudProfile]
+	data, err := f(func() (*generated.CreateCloudProfile, error) {
+		data, err := client.CreateCloudProfile(ctx, username, input)
+		return data, err
+	}, 5)
 
 	if err != nil {
-		return nil, api.ProcessError(err)
+		return nil, _api.ProcessError(err)
 	}
 
-	return data, nil
+	return data.GetCreateCloudProfile(), nil
 }
