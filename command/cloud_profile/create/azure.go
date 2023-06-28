@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/deploifai/cli-go/api/generated"
+	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
 	"os/exec"
-	"time"
 )
 
 type AzureCredentialsCreator struct {
@@ -65,18 +66,24 @@ func (r *AzureCredentialsCreator) mapProfiles(profiles []interface{}) []string {
 }
 
 func (r *AzureCredentialsCreator) getPromptLabel() string {
-	return "Select account"
+	return "Select subscription account"
 }
 
 func (r *AzureCredentialsCreator) createCredentials(profile interface{}, name string) (interface{}, error) {
 
 	account := profile.(account)
 
+	spinner := spinner_utils.NewAPICallSpinner()
+	spinner.Suffix = " Creating credentials... "
+
+	spinner.Start()
+	defer spinner.Stop()
+
 	// set azure cli context to the selected account
-	err := exec.Command("az", "account", "set", "--subscription", account.SubscriptionId).Run()
+	combinedOut, err := exec.Command("az", "account", "set", "--subscription", account.SubscriptionId).CombinedOutput()
 
 	if err != nil {
-		return generated.AzureCredentials{}, fmt.Errorf("failed to set Azure CLI context: %s", err.Error())
+		return generated.AzureCredentials{}, fmt.Errorf("failed to set Azure CLI context: %s, %s", err.Error(), combinedOut)
 	}
 
 	// create service principal
@@ -108,36 +115,26 @@ func (r *AzureCredentialsCreator) createCredentials(profile interface{}, name st
 }
 
 func (r *AzureCredentialsCreator) attemptToUseCredentials(sp *servicePrincipal) error {
-	spinner := spinner_utils.NewSleepSpinner()
-	spinner.Suffix = " Attempting to use service principal credentials... "
-
-	currentSleepDuration := 3 * time.Second
-	totalSleepDuration := 0 * time.Second
-
 	credential, err := azidentity.NewClientSecretCredential(sp.TenantId, sp.ClientId, sp.ClientSecret, nil)
 
 	if err != nil {
 		return fmt.Errorf("failed to create Azure client secret credential: %s", err.Error())
 	}
 
-	spinner.Start()
-	defer spinner.Stop()
+	retryCount := 20
 
-	for true {
-		if totalSleepDuration > 60*time.Second {
-			return fmt.Errorf("failed to use credentials after trying for %s", totalSleepDuration.String())
-		}
-		_, err = credential.GetToken(r.ctx, policy.TokenRequestOptions{
-			Scopes:   []string{"https://management.azure.com/.default"},
-			TenantID: sp.TenantId,
-		})
-		if err == nil {
-			break
-		} else {
-			time.Sleep(currentSleepDuration)
-			totalSleepDuration += currentSleepDuration
-		}
+	_, err = utils.CallWithRetries[azcore.AccessToken](
+		func() (azcore.AccessToken, error) {
+			return credential.GetToken(r.ctx, policy.TokenRequestOptions{
+				Scopes:   []string{"https://management.azure.com/.default"},
+				TenantID: sp.TenantId,
+			})
+		},
+		retryCount,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to use credentials after trying for %d times", retryCount)
 	}
 
-	return err
+	return nil
 }

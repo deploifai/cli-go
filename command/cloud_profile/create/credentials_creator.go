@@ -28,9 +28,9 @@ func NewCredentialsCreatorWrapper(ctx context.Context, provider generated.CloudP
 		creator := NewAzureCredentialsCreator(ctx)
 		wrapper.credentialsCreator = &creator
 
-		//case generated.CloudproviderGcp:
-		//	creator := &NewGCPCredentialsCreator(ctx)
-		//	return &creator
+	case generated.CloudProviderGcp:
+		creator := NewGCPCredentialsCreator(ctx)
+		wrapper.credentialsCreator = &creator
 	}
 
 	wrapper.provider = provider

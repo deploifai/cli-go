@@ -11,6 +11,7 @@ import (
 	"github.com/deploifai/cli-go/api/generated"
 	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/utils/spinner_utils"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -32,9 +33,6 @@ Currently supported cloud providers:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cloudProfileName := args[0]
 
-		// todo: remove this println
-		fmt.Println("create called", cloudProfileName, cloudProvider)
-
 		if cloudProvider == "" {
 			prompt := promptui.Select{
 				Label: "Select cloud provider",
@@ -53,7 +51,7 @@ Currently supported cloud providers:
 				}
 			}
 			if !found {
-				return errors.New(fmt.Sprintf("invalid cloud provider: %s", cloudProvider))
+				return fmt.Errorf("invalid cloud provider: %s", cloudProvider)
 			}
 		}
 
@@ -150,13 +148,20 @@ func createCredentialsOnProvider(ctx context.Context, name string, provider gene
 }
 
 func createCloudProfile(ctx context.Context, _api api.API, username string, input generated.CloudProfileCreateInput) (*generated.CreateCloudProfile_CreateCloudProfile, error) {
+
+	spinner := spinner_utils.NewAPICallSpinner()
+	spinner.Suffix = " Creating cloud profile... "
+
 	client := _api.GetClient()
+
+	spinner.Start()
+	defer spinner.Stop()
 
 	f := utils.CallWithRetries[*generated.CreateCloudProfile]
 	data, err := f(func() (*generated.CreateCloudProfile, error) {
 		data, err := client.CreateCloudProfile(ctx, username, input)
 		return data, err
-	}, 5)
+	}, 10)
 
 	if err != nil {
 		return nil, _api.ProcessError(err)

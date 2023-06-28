@@ -22,7 +22,7 @@ var types = spinnerType{
 	},
 	apiCall: config{
 		characterSet: spinner.CharSets[14],
-		duration:     200 * time.Millisecond,
+		duration:     100 * time.Millisecond,
 	},
 }
 
