@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/host"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ to quickly create a Cobra application.`,
 			cmd.Println("Not logged in.")
 		}
 
-		loginUrl := backendUrl + "/auth/login/cli"
+		loginUrl := host.Endpoint.Auth.Login
 
 		var jsonData = []byte(fmt.Sprintf(`{"username": "%s"}`, _config.Auth.Username))
 

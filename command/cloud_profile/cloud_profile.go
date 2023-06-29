@@ -1,17 +1,18 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 */
-package workspace
+package cloud_profile
 
 import (
+	"github.com/deploifai/cli-go/command/cloud_profile/create"
 	"github.com/spf13/cobra"
 )
 
-// Cmd represents the workspace command
+// Cmd represents the cloud-profile command
 var Cmd = &cobra.Command{
-	Use:     "workspace",
-	Aliases: []string{"ws"},
-	Short:   "Manage the current workspace used.",
+	Use:     "cloud-profile",
+	Aliases: []string{"cp"},
+	Short:   "Mange cloud profiles of the current workspace.",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -21,15 +22,15 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	Cmd.AddCommand(currentCmd, setCmd, listCmd)
+	Cmd.AddCommand(create.Cmd, listCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// workspaceCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// cloudProfileCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// workspaceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// cloudProfileCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

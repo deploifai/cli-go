@@ -1,0 +1,21 @@
+query GetCloudProfiles($username: String! $whereCloudProfile: CloudProfileWhereInput) {
+    cloudProfiles(
+        whereAccount: {username: $username}
+        whereCloudProfile: $whereCloudProfile
+    ) {
+        id
+        name
+        provider
+    }
+}
+
+mutation CreateCloudProfile($username: String! $data: CloudProfileCreateInput!) {
+    createCloudProfile(
+        whereAccount: {username: $username}
+        data: $data
+    ) {
+        id
+        name
+        provider
+    }
+}
