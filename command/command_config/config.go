@@ -7,10 +7,6 @@ import (
 type Config struct {
 	Auth Auth `toml:"auth"`
 
-	//Workspace struct {
-	//	Workspace `mapstructure:",squash"`
-	//} `toml:"workspace"`
-
 	Workspace Workspace `toml:"workspace"`
 }
 

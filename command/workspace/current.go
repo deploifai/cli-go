@@ -13,18 +13,14 @@ import (
 // currentCmd represents the current command
 var currentCmd = &cobra.Command{
 	Use:   "current",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Show the current workspace set.",
+	Long: `Show the current workspace set.` +
+		` The current workspace is used for all commands that require a workspace.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_config := ctx.GetContextValue(cmd).Config
 
 		if _config.Workspace.Username == "" {
-			return errors.New("No workspace set")
+			return errors.New("no workspace set")
 		}
 
 		cmd.Println(_config.Workspace.Username)

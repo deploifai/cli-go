@@ -14,12 +14,8 @@ import (
 var setCmd = &cobra.Command{
 	Use:   "set <workspace>",
 	Short: "Set the current workspace used.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: `Set the current workspace used.` +
+		` The current workspace is used for all commands that require a workspace.`,
 	Args: cobra.ExactArgs(1), // require exactly 1 arg
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newWorkspace := args[0] // first arg

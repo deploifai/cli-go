@@ -12,13 +12,8 @@ import (
 var Cmd = &cobra.Command{
 	Use:     "cloud-profile",
 	Aliases: []string{"cp"},
-	Short:   "Mange cloud profiles of the current workspace.",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short:   "Manage cloud profiles.",
+	Long:    `List, or create cloud profiles in the current workspace.`,
 }
 
 func init() {
