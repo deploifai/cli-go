@@ -3,3 +3,5 @@
 bin/
 
 schema.gql
+
+dist/
