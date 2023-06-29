@@ -25,7 +25,7 @@ func (r *AWSCredentialsCreator) getProfiles() ([]interface{}, error) {
 	combinedOut, err := exec.Command("aws", "configure", "list-profiles").CombinedOutput()
 
 	if err != nil {
-		return []interface{}{}, fmt.Errorf("AWS CLI error: %s, %s. \nPlease make sure you have AWS CLI installed and configured", err.Error(), combinedOut)
+		return []interface{}{}, fmt.Errorf("AWS CLI error: %s, %s.\nPlease make sure you have AWS CLI installed and configured", err.Error(), combinedOut)
 	}
 
 	// split by \n, remove \r, remove empty strings

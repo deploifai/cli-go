@@ -39,7 +39,7 @@ func (r *AzureCredentialsCreator) getProfiles() (profiles []interface{}, err err
 	output, err := exec.Command("az", "account", "list", "--output", "json").Output()
 
 	if err != nil {
-		return profiles, fmt.Errorf("Azure CLI error: %s. Please make sure you have Azure CLI installed and configured", err.Error())
+		return profiles, fmt.Errorf("Azure CLI error: %s.\nPlease make sure you have Azure CLI installed and configured", err.Error())
 	}
 
 	// unmarshal json

@@ -23,6 +23,7 @@ var statusCmd = &cobra.Command{
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			cmd.Println("Not logged in.")
+			return // exit
 		}
 
 		loginUrl := host.Endpoint.Auth.Login
