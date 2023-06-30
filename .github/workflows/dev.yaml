@@ -23,7 +23,10 @@ jobs:
           version: latest
           install-only: true
 
+      - name: Generate
+        run: |
+          make generate
+
       - name: Build binaries for all platforms
         run: |
-          go mod tidy
           make build-all

@@ -7,8 +7,9 @@ vet:
 
 .phony: generate
 generate:
-	go generate ./...
+	go install github.com/Yamashou/gqlgenc@latest
 	gqlgenc
+	go generate ./...
 
 .phony: build
 build: vet generate
@@ -17,5 +18,5 @@ build: vet generate
 
 .phony: build-all
 build-all: vet generate
-	@echo "Building for all platforms..."
+	@echo "Building for all platforms in dist/ ..."
 	goreleaser build --snapshot --clean
