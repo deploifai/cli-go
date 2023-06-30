@@ -29,10 +29,18 @@ archives:
     format_overrides:
     - goos: windows
       format: zip
+
 checksum:
   name_template: 'checksums.txt'
+
+signs:
+  - artifacts: checksum
+    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
+    output: true
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   use: github
   sort: desc
@@ -40,6 +48,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+
 release:
   github:
     owner: deploifai
@@ -47,6 +56,7 @@ release:
   draft: true
   replace_existing_draft: true
   name_template: "Release {{.Tag}}"
+
 brews:
   - name: deploifai
     goarm: 6

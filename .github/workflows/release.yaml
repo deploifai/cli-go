@@ -13,6 +13,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
       - name: Release with GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
@@ -21,3 +28,4 @@ jobs:
           args: release --snapshot --clean
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
