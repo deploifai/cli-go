@@ -67,7 +67,7 @@ brews:
     repository:
       owner: deploifai
       name: homebrew-deploifai
-      token: "{{ .Env.PAT_GITHUB_ACTIONS }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
       pull_request:
         enabled: true
 
