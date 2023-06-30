@@ -53,7 +53,7 @@ release:
 
 brews:
   - name: deploifai
-    goarm: 6
+    goarm: "7"
     goamd64: v1
     url_template: "https://github.com/deploifai/cli-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
@@ -64,11 +64,12 @@ brews:
     description: "CLI tool for Deploifai"
     license: "MIT"
     skip_upload: false
+    folder: Formula
     test: |
       system "#{bin}/deploifai", "version"
     install: |
       bin.install "deploifai"
-    repository:
+    tap:
       owner: deploifai
       name: homebrew-deploifai
       token: "{{ .Env.GITHUB_TOKEN }}"
