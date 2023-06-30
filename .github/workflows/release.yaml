@@ -32,7 +32,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --snapshot --clean
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
 
