@@ -28,7 +28,3 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
-
-      - name: Checksums
-        run: |
-          cat dist/checksums.txt
