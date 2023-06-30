@@ -11,13 +11,8 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "List all accessible workspaces.",
+	Long:  `List all workspaces that are accessible to the current user.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		api := ctx.GetContextValue(cmd).API
 		client := api.GetClient()
@@ -30,6 +25,7 @@ to quickly create a Cobra application.`,
 		// print personal workspace
 		cmd.Println(data.Me.Account.Username, "<Personal>")
 
+		// print teams workspaces
 		for i := range data.Me.Teams {
 			cmd.Println(data.Me.Teams[i].Account.Username, "<Team>")
 		}

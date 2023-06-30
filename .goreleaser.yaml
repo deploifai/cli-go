@@ -1,0 +1,78 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+    - make generate
+
+builds:
+  - id: deploifai
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    binary: deploifai
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      deploifai_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+    - goos: windows
+      format: zip
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  use: github
+  sort: desc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  github:
+    owner: deploifai
+    name: cli-go
+  draft: true
+  replace_existing_draft: true
+  name_template: "Release {{.Tag}}"
+brews:
+  - name: deploifai
+    goarm: 6
+    goamd64: v1
+    url_template: "https://github.com/deploifai/cli-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for deploifai version {{ .Tag }}"
+    homepage: "https://deploif.ai"
+    description: "CLI tool for Deploifai"
+    license: "MIT"
+    skip_upload: false
+    test: |
+      system "#{bin}/deploifai", "version"
+    install: |
+      bin.install "deploifai"
+    repository:
+      owner: deploifai
+      name: homebrew-deploifai
+      token: "{{ .Env.PAT_GITHUB_ACTIONS }}"
+      pull_request:
+        enabled: true
+
+
+# The lines beneath this are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj

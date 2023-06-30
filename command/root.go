@@ -23,7 +23,6 @@ package command
 
 import (
 	"errors"
-	"fmt"
 	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/auth"
 	"github.com/deploifai/cli-go/command/cloud_profile"
@@ -47,12 +46,9 @@ var C command_config.Config
 var rootCmd = &cobra.Command{
 	Use:   "deploifai",
 	Short: "A CLI for Deploifai",
-	Long: `This is a CLI to interact with the Deploifai API. It also provides
-a lot of powerful tools to super-charge the ML development workflow.`,
+	Long: `This is a CLI to interact with the Deploifai API. It also provides ` +
+		`a lot of powerful tools to super-charge the ML development workflow.`,
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println("PostRun")
-
-		fmt.Println(C)
 
 		C.WriteStructIntoConfig(rootViper)
 
@@ -134,8 +130,7 @@ func initConfig() {
 		rootViper.SetConfigFile(filepath.Join(cfgDirectory, "config.toml"))
 		break
 	default:
-		// No error
-		//fmt.Println("Using config file:", rootViper.ConfigFileUsed())
+		// No error – do nothing
 	}
 
 	// Set defaults
