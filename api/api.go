@@ -47,9 +47,7 @@ func (api *API) ProcessError(err error) error {
 			msg = msg + fmt.Sprintf("graphql error: %v\n", handledError.GqlErrors)
 		}
 		return errors.New(msg)
-	} else {
-		return errors.New(fmt.Sprintf("unhandled error: %s\n", err.Error()))
 	}
 
-	return nil
+	return errors.New(fmt.Sprintf("unhandled error: %s\n", err.Error()))
 }
