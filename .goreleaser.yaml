@@ -2,7 +2,6 @@
 # Make sure to check the documentation at https://goreleaser.com
 before:
   hooks:
-    - go mod tidy
     - make generate
 
 builds:
@@ -29,10 +28,13 @@ archives:
     format_overrides:
     - goos: windows
       format: zip
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
+
 changelog:
   use: github
   sort: desc
@@ -40,6 +42,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+
 release:
   github:
     owner: deploifai
@@ -47,9 +50,10 @@ release:
   draft: true
   replace_existing_draft: true
   name_template: "Release {{.Tag}}"
+
 brews:
   - name: deploifai
-    goarm: 6
+    goarm: "7"
     goamd64: v1
     url_template: "https://github.com/deploifai/cli-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     commit_author:
@@ -60,14 +64,16 @@ brews:
     description: "CLI tool for Deploifai"
     license: "MIT"
     skip_upload: false
+    folder: Formula
     test: |
       system "#{bin}/deploifai", "version"
     install: |
       bin.install "deploifai"
-    repository:
+    tap:
       owner: deploifai
       name: homebrew-deploifai
-      token: "{{ .Env.PAT_GITHUB_ACTIONS }}"
+      branch: "release-{{ .Tag }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
       pull_request:
         enabled: true
 

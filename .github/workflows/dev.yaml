@@ -1,0 +1,32 @@
+name: Dev
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: v1.18.2
+          install-only: true
+
+      - name: Generate
+        run: |
+          make generate
+
+      - name: Build binaries for all platforms
+        run: |
+          make build-all
