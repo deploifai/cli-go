@@ -72,6 +72,7 @@ brews:
     tap:
       owner: deploifai
       name: homebrew-deploifai
+      branch: "release-${{ .Tag }}"
       token: "{{ .Env.GITHUB_TOKEN }}"
       pull_request:
         enabled: true
