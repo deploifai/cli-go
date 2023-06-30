@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/iam v1.1.1
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.6.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.0
-	github.com/Yamashou/gqlgenc v0.13.5
+	github.com/Yamashou/gqlgenc v0.14.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.27
 	github.com/aws/aws-sdk-go-v2/service/iam v1.21.0
 	github.com/briandowns/spinner v1.23.0
