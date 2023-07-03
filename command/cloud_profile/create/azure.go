@@ -65,7 +65,7 @@ func (r *AzureCredentialsCreator) mapProfiles(profiles []interface{}) []string {
 	return mappedProfiles
 }
 
-func (r *AzureCredentialsCreator) getPromptLabel() string {
+func (r *AzureCredentialsCreator) getPromptMessage() string {
 	return "Select subscription account"
 }
 

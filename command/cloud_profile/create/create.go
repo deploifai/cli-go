@@ -7,12 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/api/generated"
 	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -34,14 +34,20 @@ Currently supported cloud providers:
 		cloudProfileName := args[0]
 
 		if cloudProvider == "" {
-			prompt := promptui.Select{
-				Label: "Select cloud provider",
-				Items: generated.AllCloudProvider,
+			options := make([]string, len(generated.AllCloudProvider))
+			for i, provider := range generated.AllCloudProvider {
+				options[i] = string(provider)
 			}
 
-			_, result, err := prompt.Run()
+			answer := ""
+
+			err := survey.AskOne(&survey.Select{
+				Message: "Select cloud provider",
+				Options: options,
+			}, &answer, survey.WithValidator(survey.Required))
+
 			cobra.CheckErr(err)
-			cloudProvider = generated.CloudProvider(result)
+			cloudProvider = generated.CloudProvider(answer)
 		} else {
 			found := false
 			for _, provider := range generated.AllCloudProvider {

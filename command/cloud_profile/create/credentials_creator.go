@@ -3,14 +3,14 @@ package create
 import (
 	"context"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/api/generated"
-	"github.com/manifoldco/promptui"
 )
 
 type CredentialsCreator interface {
 	getProfiles() ([]interface{}, error)
 	mapProfiles([]interface{}) []string
-	getPromptLabel() string
+	getPromptMessage() string
 	createCredentials(profile interface{}, name string) (interface{}, error)
 }
 
@@ -67,15 +67,19 @@ func (r *CredentialsCreatorWrapper) promptProfile(profiles []interface{}) (profi
 
 	items := r.credentialsCreator.mapProfiles(profiles)
 
-	prompt := promptui.Select{
-		Label: r.credentialsCreator.getPromptLabel(),
-		Items: items,
-	}
+	var index int
 
-	i, _, err := prompt.Run()
+	err = survey.AskOne(&survey.Select{
+		Message: r.credentialsCreator.getPromptMessage(),
+		Options: items,
+	}, &index, survey.WithValidator(survey.Required))
 	if err != nil {
 		return "", err
 	}
 
-	return profiles[i], nil
+	if err != nil {
+		return "", err
+	}
+
+	return profiles[index], nil
 }
