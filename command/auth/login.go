@@ -25,9 +25,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/host"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"net/http"
 )
@@ -47,33 +47,17 @@ var loginCmd = &cobra.Command{
 		}
 
 		if username == "" {
-			prompt := promptui.Prompt{
-				Label: "username",
-				Validate: func(input string) error {
-					if len(input) < 1 {
-						return errors.New("username cannot be empty")
-					}
-					return nil
-				},
-			}
-			result, err := prompt.Run()
+			err := survey.AskOne(&survey.Input{
+				Message: "Username",
+			}, &username, survey.WithValidator(survey.Required))
 			cobra.CheckErr(err)
-			username = result
 		}
 
 		if token == "" {
-			prompt := promptui.Prompt{
-				Label: "token",
-				Validate: func(input string) error {
-					if len(input) < 1 {
-						return errors.New("username cannot be empty")
-					}
-					return nil
-				},
-			}
-			result, err := prompt.Run()
+			err := survey.AskOne(&survey.Password{
+				Message: "Token",
+			}, &token)
 			cobra.CheckErr(err)
-			token = result
 		}
 
 		loginUrl := host.Endpoint.Auth.Login

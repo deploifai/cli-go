@@ -48,7 +48,7 @@ func (r *AWSCredentialsCreator) mapProfiles(profiles []interface{}) []string {
 	return mappedProfiles
 }
 
-func (r *AWSCredentialsCreator) getPromptLabel() string {
+func (r *AWSCredentialsCreator) getPromptMessage() string {
 	return "Select profile"
 }
 

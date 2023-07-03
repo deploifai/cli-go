@@ -75,7 +75,7 @@ func (r *GCPCredentialsCreator) mapProfiles(profiles []interface{}) []string {
 	return mappedProfiles
 }
 
-func (r *GCPCredentialsCreator) getPromptLabel() string {
+func (r *GCPCredentialsCreator) getPromptMessage() string {
 	return "Select project"
 }
 
