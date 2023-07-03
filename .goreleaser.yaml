@@ -77,6 +77,26 @@ brews:
       pull_request:
         enabled: true
 
+scoops:
+  - name: deploifai
+    homepage: "https://deploif.ai"
+    description: "CLI tool for Deploifai"
+    url_template: "https://github.com/deploifai/cli-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Scoop update for deploifai version {{ .Tag }}"
+    license: MIT
+    goamd64: v1
+    skip_upload: false
+    bucket:
+      owner: deploifai
+      name: scoop-deploifai
+      branch: "release-{{ .Tag }}"
+      token: "{{ .Env.GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+
 
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
