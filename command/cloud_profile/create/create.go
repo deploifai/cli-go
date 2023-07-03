@@ -20,7 +20,7 @@ var cloudProvider generated.CloudProvider
 
 // Cmd represents the create command
 var Cmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create <name>",
 	Short: "Create a cloud profile in the current workspace.",
 	Long: `Create cloud credentials for a cloud provider to be used to provision resources in the current workspace.
 
