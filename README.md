@@ -9,6 +9,9 @@ This is the CLI for the Deploifai platform.
 Install using `apt`:
 
 ```shell
+# install curl, ca-certificates, gnupg
+sudo apt-get install -y curl ca-certificates gnupg && gpg --list-keys
+
 # download gpg key
 curl -fsSL https://packages.deploif.ai/apt/pubkey | sudo gpg --dearmor -o /usr/share/keyrings/deploifai.gpg
 
