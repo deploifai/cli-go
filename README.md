@@ -12,17 +12,23 @@ Install using `apt`:
 # install curl, ca-certificates, gnupg
 sudo apt-get install -y curl ca-certificates gnupg && gpg --list-keys
 
-# download gpg key
+# download gpg public key
 curl -fsSL https://packages.deploif.ai/apt/pubkey | sudo gpg --dearmor -o /usr/share/keyrings/deploifai.gpg
 
 # add repo to sources.list
-echo "deb [arch=amd64,arm64,i386 signed-by=/usr/share/keyrings/deploifai.gpg] https://packages.deploif.ai/apt stable main" | sudo tee -a /etc/apt/sources.list.d/deploifai.list
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/deploifai.gpg] https://packages.deploif.ai/apt stable main" | sudo tee -a /etc/apt/sources.list.d/deploifai.list
 
 # update apt
 sudo apt update
 
 # install
 sudo apt install deploifai
+```
+
+Or just run the following script:
+
+```shell
+curl -L https://packages.deploif.ai/apt/scripts/cli-install.sh | bash
 ```
 
 ### Homebrew (macOS/Linux)
