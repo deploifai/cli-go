@@ -10,7 +10,7 @@ Install using `apt`:
 
 ```shell
 # install curl, ca-certificates, gnupg
-sudo apt-get install -y curl ca-certificates gnupg && gpg --list-keys
+sudo apt install -y curl ca-certificates gnupg && gpg --list-keys
 
 # download gpg public key
 curl -fsSL https://packages.deploif.ai/apt/pubkey | sudo gpg --dearmor -o /usr/share/keyrings/deploifai.gpg
