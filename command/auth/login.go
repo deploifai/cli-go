@@ -23,34 +23,27 @@ package auth
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/host"
 	"github.com/spf13/cobra"
+	"io"
 	"net/http"
 )
 
-var username string
 var token string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login using a username and a personal access token.",
+	Short: "Login using a personal access token.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_config := ctx.GetContextValue(cmd).Config
 
 		if _config.Auth.Username != "" && _config.Auth.Token != "" {
 			return errors.New("already logged in, try logging out first")
-		}
-
-		if username == "" {
-			err := survey.AskOne(&survey.Input{
-				Message: "Username",
-			}, &username, survey.WithValidator(survey.Required))
-			cobra.CheckErr(err)
 		}
 
 		if token == "" {
@@ -62,9 +55,7 @@ var loginCmd = &cobra.Command{
 
 		loginUrl := host.Endpoint.Auth.Login
 
-		var jsonData = []byte(fmt.Sprintf(`{"username": "%s"}`, username))
-
-		request, err := http.NewRequest("POST", loginUrl, bytes.NewBuffer(jsonData))
+		request, err := http.NewRequest("POST", loginUrl, bytes.NewBuffer([]byte{}))
 		request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 		request.Header.Set("authorization", token)
 		cobra.CheckErr(err)
@@ -73,15 +64,26 @@ var loginCmd = &cobra.Command{
 		response, err := client.Do(request)
 		cobra.CheckErr(err)
 
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			cobra.CheckErr(err)
+		}(response.Body)
+
 		if response.StatusCode != 200 {
-			return errors.New("invalid username or token")
+			return errors.New("invalid token")
 		}
+
+		var body struct {
+			Username string `json:"username"`
+		}
+		err = json.NewDecoder(response.Body).Decode(&body)
+		cobra.CheckErr(err)
 
 		cmd.Println("Successfully logged in.")
 
-		_config.Auth.Username = username
+		_config.Auth.Username = body.Username
 		_config.Auth.Token = token
-		_config.Workspace.Username = username
+		_config.Workspace.Username = body.Username
 
 		return nil
 	},
@@ -96,6 +98,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Deploifai username")
 	loginCmd.Flags().StringVarP(&token, "token", "t", "", "generated personal access token")
 }
