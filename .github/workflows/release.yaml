@@ -15,30 +15,16 @@ jobs:
         with:
           fetch-depth: 100 # fetch latest 100 commits, so the last tag should be less than 100 commits in the past
 
-#      - name: Setup Go
-#        uses: actions/setup-go@v4
-#        with:
-#          go-version: "1.20"
-#
-#      - name: Release with GoReleaser
-#        uses: goreleaser/goreleaser-action@v4
-#        with:
-#          distribution: goreleaser
-#          version: v1.18.2
-#          args: release --clean --debug
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
 
-      - name: Setup tag and version output
-        id: setup
-        run: |
-          echo ${{ github.ref_name }}
-          echo ${{ github.ref_name }} | cut -c 2-
-          echo "TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          echo "VERSION=$(echo ${{ github.ref_name }} | cut -c 2-)" >> $GITHUB_OUTPUT
-
-
-      - name: Test
-        run: |
-          echo ${{ steps.setup.outputs.TAG }}
-          echo ${{ steps.setup.outputs.VERSION }}
+      - name: Release with GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: v1.18.2
+          args: release --clean --debug
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GITHUB_ACTIONS }}
