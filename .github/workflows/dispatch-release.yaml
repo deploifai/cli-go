@@ -1,0 +1,26 @@
+name: Dispatch Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  dispatch:
+    name: dispatch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup tag and version output
+        id: setup
+        run: |
+          echo ${{ github.ref_name }}
+          echo ${{ github.ref_name }} | cut -c 2-
+          echo "TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "VERSION=$(echo ${{ github.ref_name }} | cut -c 2-)" >> $GITHUB_OUTPUT
+
+      - name: Dispatch release event to starfleet-packages repo
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          repository: deploifai/starfleet-packages
+          event-type: release
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "tag": "${{ steps.setup.outputs.TAG }}", "version": "${{ steps.setup.outputs.VERSION }}"}'
