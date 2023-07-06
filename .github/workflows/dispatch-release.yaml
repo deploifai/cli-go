@@ -22,10 +22,10 @@ jobs:
           echo ${{ steps.setup.outputs.TAG }}
           echo ${{ steps.setup.outputs.VERSION }}
 
-#      - name: Dispatch release event to starfleet-packages repo
-#        uses: peter-evans/repository-dispatch@v2
-#        with:
-#          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
-#          repository: deploifai/starfleet-packages
-#          event-type: release
-#          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "tag": "${{ steps.setup.outputs.TAG }}", "version": "${{ steps.setup.outputs.VERSION }}"}'
+      - name: Dispatch release event to starfleet-packages repo
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_GITHUB_ACTIONS }}
+          repository: deploifai/starfleet-packages
+          event-type: release
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "tag": "${{ steps.setup.outputs.TAG }}", "version": "${{ steps.setup.outputs.VERSION }}"}'
