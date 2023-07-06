@@ -17,11 +17,6 @@ jobs:
           echo "TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           echo "VERSION=$(echo ${{ github.ref_name }} | cut -c 2-)" >> $GITHUB_OUTPUT
 
-      - name: Test
-        run: |
-          echo ${{ steps.setup.outputs.TAG }}
-          echo ${{ steps.setup.outputs.VERSION }}
-
       - name: Dispatch release event to starfleet-packages repo
         uses: peter-evans/repository-dispatch@v2
         with:
