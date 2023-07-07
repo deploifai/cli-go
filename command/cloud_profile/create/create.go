@@ -10,9 +10,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/api/generated"
-	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -163,11 +163,12 @@ func createCloudProfile(ctx context.Context, _api api.API, username string, inpu
 	spinner.Start()
 	defer spinner.Stop()
 
-	f := utils.CallWithRetries[*generated.CreateCloudProfile]
-	data, err := f(func() (*generated.CreateCloudProfile, error) {
-		data, err := client.CreateCloudProfile(ctx, username, input)
-		return data, err
-	}, 10)
+	retryCount := 10
+	data, err := utils.CallWithRetries[*generated.CreateCloudProfile](
+		func() (*generated.CreateCloudProfile, error) {
+			data, err := client.CreateCloudProfile(ctx, username, input)
+			return data, err
+		}, &retryCount, nil)
 
 	if err != nil {
 		return nil, _api.ProcessError(err)

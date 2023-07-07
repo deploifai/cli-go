@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 package command
 
+import "C"
 import (
 	"errors"
 	"github.com/deploifai/cli-go/api"
@@ -40,7 +41,8 @@ import (
 
 var rootViper *viper.Viper
 var cfgFile string
-var C command_config.Config
+var rootConfig command_config.Config
+var rootAPI api.API
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -50,7 +52,7 @@ var rootCmd = &cobra.Command{
 		`a lot of powerful tools to super-charge the ML development workflow.`,
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 
-		C.WriteStructIntoConfig(rootViper)
+		rootConfig.WriteStructIntoConfig(rootViper)
 
 		cfgFile := rootViper.ConfigFileUsed()
 
@@ -137,11 +139,14 @@ func initConfig() {
 	command_config.SetDefaultConfig(rootViper)
 
 	// Unmarshal config into Struct
-	err = rootViper.Unmarshal(&C)
+	err = rootViper.Unmarshal(&rootConfig)
 	cobra.CheckErr(err)
 
+	// Create API
+	rootAPI = api.NewAPI(host.Endpoint.GraphQL, rootConfig.Auth.Token)
+
 	// Create root command context
-	value := ctx.NewContextValue(&C, api.New(host.Endpoint.GraphQL, C.Auth.Token))
+	value := ctx.NewContextValue(&rootConfig, &rootAPI)
 	_context := context.WithValue(context.Background(), "value", value)
 	rootCmd.SetContext(_context)
 }
