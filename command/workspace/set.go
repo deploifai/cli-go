@@ -22,10 +22,10 @@ var setCmd = &cobra.Command{
 
 		// verify workspace exists
 		api := ctx.GetContextValue(cmd).API
-		client := api.GetClient()
+		client := api.GetGQLClient()
 		data, err := client.GetAccounts(cmd.Context())
 		if err != nil {
-			cobra.CheckErr(api.ProcessError(err))
+			cobra.CheckErr(api.ProcessGQLError(err))
 		}
 
 		found := newWorkspace == data.Me.Account.Username

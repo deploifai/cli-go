@@ -6,10 +6,10 @@ import (
 )
 
 // API is a type alias using the generated client
-type API = api.API[generated.GQLClient]
+type API = api.GenericAPI[generated.GQLClient]
 
-func NewAPI(endpoint string, authToken string) API {
+func NewAPI(gqlEndpoint string, restEndpoint string, authToken string) API {
 
-	return api.NewGenericAPI[generated.GQLClient](generated.NewClient, endpoint, authToken)
+	return api.NewGenericAPI[generated.GQLClient](generated.NewClient, gqlEndpoint, restEndpoint, api.RequestHeaders{api.WithAuthHeader(authToken)})
 
 }

@@ -15,11 +15,11 @@ var listCmd = &cobra.Command{
 	Long:  `List all workspaces that are accessible to the current user.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		api := ctx.GetContextValue(cmd).API
-		client := api.GetClient()
+		client := api.GetGQLClient()
 
 		data, err := client.GetAccounts(cmd.Context())
 		if err != nil {
-			cobra.CheckErr(api.ProcessError(err))
+			cobra.CheckErr(api.ProcessGQLError(err))
 		}
 
 		// print personal workspace

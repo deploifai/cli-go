@@ -143,7 +143,7 @@ func initConfig() {
 	cobra.CheckErr(err)
 
 	// Create API
-	rootAPI = api.NewAPI(host.Endpoint.GraphQL, rootConfig.Auth.Token)
+	rootAPI = api.NewAPI(host.Endpoint.GraphQL, host.Endpoint.Base, rootConfig.Auth.Token)
 
 	// Create root command context
 	value := ctx.NewContextValue(&rootConfig, &rootAPI)

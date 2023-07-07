@@ -15,12 +15,12 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		_context := ctx.GetContextValue(cmd)
 		api := _context.API
-		client := api.GetClient()
+		client := api.GetGQLClient()
 		_config := _context.Config
 
 		data, err := client.GetCloudProfiles(cmd.Context(), _config.Workspace.Username, nil)
 		if err != nil {
-			cobra.CheckErr(api.ProcessError(err))
+			cobra.CheckErr(api.ProcessGQLError(err))
 		}
 
 		for i := range data.CloudProfiles {

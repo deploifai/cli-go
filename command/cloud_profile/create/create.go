@@ -106,7 +106,7 @@ func init() {
 }
 
 func checkCollision(c context.Context, api api.API, username string, cloudProfileName string, provider generated.CloudProvider) (bool, error) {
-	client := api.GetClient()
+	client := api.GetGQLClient()
 
 	data, err := client.GetCloudProfiles(c, username, &generated.CloudProfileWhereInput{
 		Name: &generated.StringFilter{
@@ -118,7 +118,7 @@ func checkCollision(c context.Context, api api.API, username string, cloudProfil
 	})
 
 	if err != nil {
-		return false, api.ProcessError(err)
+		return false, api.ProcessGQLError(err)
 	}
 
 	return len(data.CloudProfiles) > 0, nil
@@ -158,7 +158,7 @@ func createCloudProfile(ctx context.Context, _api api.API, username string, inpu
 	spinner := spinner_utils.NewAPICallSpinner()
 	spinner.Suffix = " Creating cloud profile... "
 
-	client := _api.GetClient()
+	client := _api.GetGQLClient()
 
 	spinner.Start()
 	defer spinner.Stop()
@@ -171,7 +171,7 @@ func createCloudProfile(ctx context.Context, _api api.API, username string, inpu
 		}, &retryCount, nil)
 
 	if err != nil {
-		return nil, _api.ProcessError(err)
+		return nil, _api.ProcessGQLError(err)
 	}
 
 	return data.GetCreateCloudProfile(), nil
