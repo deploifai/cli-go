@@ -14,11 +14,11 @@ generate:
 	go generate ./...
 
 .phony: build
-build: fmt vet generate
+build: fmt generate vet
 	@echo "Building for current platform..."
 	go build -o $(BINARY_DIR)/$(BINARY_NAME) main.go
 
 .phony: build-all
-build-all: fmt vet generate
+build-all: fmt generate vet
 	@echo "Building for all platforms in dist/ ..."
 	goreleaser build --snapshot --clean
