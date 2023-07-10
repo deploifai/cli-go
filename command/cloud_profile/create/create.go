@@ -8,11 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/deploifai/cli-go/api"
-	"github.com/deploifai/cli-go/api/generated"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/generated"
 	"github.com/deploifai/sdk-go/api/utils"
+	"github.com/deploifai/sdk-go/service/cloud_profile"
 	"github.com/spf13/cobra"
 )
 
@@ -66,12 +66,14 @@ Currently supported cloud providers:
 			return errors.New("Digital Ocean is not supported yet")
 		}
 
-		api := ctx.GetContextValue(cmd).API
-		_config := ctx.GetContextValue(cmd).Config
+		_context := ctx.GetContextValue(cmd)
+		_config := _context.Config
+		client := cloud_profile.NewFromConfig(*_context.ServiceClientConfig)
+		whereAccount := generated.AccountWhereUniqueInput{Username: &_config.Workspace.Username}
 
 		// check if cloud profile already exists
 		// if it does, return an error
-		if collision, err := checkCollision(cmd.Context(), *api, _config.Workspace.Username, cloudProfileName, cloudProvider); err != nil {
+		if collision, err := checkCollision(cmd.Context(), *client, whereAccount, cloudProfileName, cloudProvider); err != nil {
 			cobra.CheckErr(err)
 		} else if collision {
 			return errors.New(fmt.Sprintf("%s for %s already exists in the current workspace", cloudProfileName, cloudProvider))
@@ -82,7 +84,7 @@ Currently supported cloud providers:
 			cobra.CheckErr(err)
 		}
 
-		cloudProfile, err := createCloudProfile(cmd.Context(), *api, _config.Workspace.Username, createInput)
+		cloudProfile, err := createCloudProfile(cmd.Context(), *client, whereAccount, createInput)
 		if err != nil {
 			cobra.CheckErr(err)
 		}
@@ -105,10 +107,9 @@ func init() {
 	Cmd.Flags().StringVarP((*string)(&cloudProvider), "provider", "p", "", "cloud provider, must be one of: AWS, AZURE, GCP")
 }
 
-func checkCollision(c context.Context, api api.API, username string, cloudProfileName string, provider generated.CloudProvider) (bool, error) {
-	client := api.GetGQLClient()
+func checkCollision(c context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, cloudProfileName string, provider generated.CloudProvider) (bool, error) {
 
-	data, err := client.GetCloudProfiles(c, username, &generated.CloudProfileWhereInput{
+	cloudProfiles, err := client.List(c, whereAccount, &generated.CloudProfileWhereInput{
 		Name: &generated.StringFilter{
 			Equals: &cloudProfileName,
 		},
@@ -118,10 +119,10 @@ func checkCollision(c context.Context, api api.API, username string, cloudProfil
 	})
 
 	if err != nil {
-		return false, api.ProcessGQLError(err)
+		return false, err
 	}
 
-	return len(data.CloudProfiles) > 0, nil
+	return len(cloudProfiles) > 0, nil
 }
 
 func createCredentialsOnProvider(ctx context.Context, name string, provider generated.CloudProvider) (createInput generated.CloudProfileCreateInput, err error) {
@@ -153,26 +154,18 @@ func createCredentialsOnProvider(ctx context.Context, name string, provider gene
 	return createInput, err
 }
 
-func createCloudProfile(ctx context.Context, _api api.API, username string, input generated.CloudProfileCreateInput) (*generated.CreateCloudProfile_CreateCloudProfile, error) {
+func createCloudProfile(ctx context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, input generated.CloudProfileCreateInput) (cp generated.CloudProfileFragment, err error) {
 
 	spinner := spinner_utils.NewAPICallSpinner()
 	spinner.Suffix = " Creating cloud profile... "
-
-	client := _api.GetGQLClient()
 
 	spinner.Start()
 	defer spinner.Stop()
 
 	retryCount := 10
-	data, err := utils.CallWithRetries[*generated.CreateCloudProfile](
-		func() (*generated.CreateCloudProfile, error) {
-			data, err := client.CreateCloudProfile(ctx, username, input)
-			return data, err
+
+	return utils.CallWithRetries[generated.CloudProfileFragment](
+		func() (generated.CloudProfileFragment, error) {
+			return client.Create(ctx, whereAccount, input)
 		}, &retryCount, nil)
-
-	if err != nil {
-		return nil, _api.ProcessGQLError(err)
-	}
-
-	return data.GetCreateCloudProfile(), nil
 }

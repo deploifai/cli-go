@@ -1,20 +1,20 @@
 package ctx
 
 import (
-	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/command_config"
+	"github.com/deploifai/sdk-go/config"
 	"github.com/spf13/cobra"
 )
 
 type ContextValue struct {
-	Config *command_config.Config
-	API    *api.API
+	Config              *command_config.Config
+	ServiceClientConfig *config.Config
 }
 
-func NewContextValue(config *command_config.Config, api *api.API) *ContextValue {
+func NewContextValue(config *command_config.Config, serviceClientConfig *config.Config) *ContextValue {
 	return &ContextValue{
-		Config: config,
-		API:    api,
+		Config:              config,
+		ServiceClientConfig: serviceClientConfig,
 	}
 }
 

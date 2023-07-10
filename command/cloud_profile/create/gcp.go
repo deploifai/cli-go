@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/deploifai/cli-go/api/generated"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/generated"
 	"os"
 	"os/exec"
 )

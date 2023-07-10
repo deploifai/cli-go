@@ -11,8 +11,6 @@ vet:
 
 .phony: generate
 generate:
-	go install github.com/Yamashou/gqlgenc@latest
-	gqlgenc
 	go generate ./...
 
 .phony: build

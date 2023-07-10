@@ -7,8 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/deploifai/cli-go/api/generated"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/generated"
 	"github.com/deploifai/sdk-go/api/utils"
 	"os/exec"
 )

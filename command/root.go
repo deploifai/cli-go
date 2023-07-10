@@ -24,13 +24,13 @@ package command
 import "C"
 import (
 	"errors"
-	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/auth"
 	"github.com/deploifai/cli-go/command/cloud_profile"
 	"github.com/deploifai/cli-go/command/command_config"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/command/workspace"
-	"github.com/deploifai/cli-go/host"
+	"github.com/deploifai/sdk-go/config"
+	"github.com/deploifai/sdk-go/credentials"
 	"golang.org/x/net/context"
 	"os"
 	"path/filepath"
@@ -42,7 +42,7 @@ import (
 var rootViper *viper.Viper
 var cfgFile string
 var rootConfig command_config.Config
-var rootAPI api.API
+var rootServiceClientConfig config.Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -82,7 +82,7 @@ func Execute() {
 
 func init() {
 	// Add groups of commands
-	rootCmd.AddCommand(auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
+	rootCmd.AddCommand(versionCmd, auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
 
 	cobra.OnInitialize(initConfig)
 
@@ -135,6 +135,8 @@ func initConfig() {
 		// No error – do nothing
 	}
 
+	bgCtx := context.Background()
+
 	// Set defaults
 	command_config.SetDefaultConfig(rootViper)
 
@@ -142,11 +144,12 @@ func initConfig() {
 	err = rootViper.Unmarshal(&rootConfig)
 	cobra.CheckErr(err)
 
-	// Create API
-	rootAPI = api.NewAPI(host.Endpoint.GraphQL, host.Endpoint.Base, rootConfig.Auth.Token)
+	// Create service client config
+	rootServiceClientConfig, err = config.LoadDefaultConfig(bgCtx, config.WithCredentials(credentials.NewCredentials(rootConfig.Auth.Token)))
+	cobra.CheckErr(err)
 
 	// Create root command context
-	value := ctx.NewContextValue(&rootConfig, &rootAPI)
-	_context := context.WithValue(context.Background(), "value", value)
+	value := ctx.NewContextValue(&rootConfig, &rootServiceClientConfig)
+	_context := context.WithValue(bgCtx, "value", value)
 	rootCmd.SetContext(_context)
 }

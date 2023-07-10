@@ -4,13 +4,11 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package auth
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/deploifai/cli-go/command/ctx"
-	"github.com/deploifai/cli-go/host"
-	"net/http"
-
+	"github.com/deploifai/sdk-go/api"
+	"github.com/deploifai/sdk-go/api/host"
 	"github.com/spf13/cobra"
 )
 
@@ -19,23 +17,25 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check login status.",
 	Run: func(cmd *cobra.Command, args []string) {
-		_config := ctx.GetContextValue(cmd).Config
+		_ctx := ctx.GetContextValue(cmd)
+		_config := _ctx.Config
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			cmd.Println("Not logged in.")
 			return // exit
 		}
 
-		loginUrl := host.Endpoint.Auth.Login
+		client := _ctx.ServiceClientConfig.API.GetRestClient()
+
+		loginUri := host.Endpoint.Rest.Auth.Login
 
 		var jsonData = []byte(fmt.Sprintf(`{"username": "%s"}`, _config.Auth.Username))
 
-		request, err := http.NewRequest("POST", loginUrl, bytes.NewBuffer(jsonData))
-		request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-		request.Header.Set("Authorization", _config.Auth.Token)
+		request, err := client.NewRequest("POST", loginUri, api.RequestHeaders{
+			api.WithContentType(api.ContentTypeJson),
+		}, jsonData)
 		cobra.CheckErr(err)
 
-		client := &http.Client{}
 		response, err := client.Do(request)
 		cobra.CheckErr(err)
 

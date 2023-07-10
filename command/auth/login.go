@@ -22,15 +22,12 @@ THE SOFTWARE.
 package auth
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/deploifai/cli-go/command/ctx"
-	"github.com/deploifai/cli-go/host"
+	"github.com/deploifai/sdk-go/api"
+	"github.com/deploifai/sdk-go/api/host"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
 )
 
 var token string
@@ -40,7 +37,8 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login using a personal access token.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_config := ctx.GetContextValue(cmd).Config
+		_ctx := ctx.GetContextValue(cmd)
+		_config := _ctx.Config
 
 		if _config.Auth.Username != "" && _config.Auth.Token != "" {
 			return errors.New("already logged in, try logging out first")
@@ -53,21 +51,15 @@ var loginCmd = &cobra.Command{
 			cobra.CheckErr(err)
 		}
 
-		loginUrl := host.Endpoint.Auth.Login
+		client := _ctx.ServiceClientConfig.API.GetRestClient()
 
-		request, err := http.NewRequest("POST", loginUrl, bytes.NewBuffer([]byte{}))
-		request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-		request.Header.Set("authorization", token)
+		loginUri := host.Endpoint.Rest.Auth.Login
+
+		request, err := client.NewRequest("POST", loginUri, api.RequestHeaders{api.WithAuthHeader(token)}, []byte{})
 		cobra.CheckErr(err)
 
-		client := &http.Client{}
 		response, err := client.Do(request)
 		cobra.CheckErr(err)
-
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			cobra.CheckErr(err)
-		}(response.Body)
 
 		if response.StatusCode != 200 {
 			return errors.New("invalid token")
@@ -76,7 +68,7 @@ var loginCmd = &cobra.Command{
 		var body struct {
 			Username string `json:"username"`
 		}
-		err = json.NewDecoder(response.Body).Decode(&body)
+		err = client.ReadResponseJson(response, &body)
 		cobra.CheckErr(err)
 
 		cmd.Println("Successfully logged in.")
