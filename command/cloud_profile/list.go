@@ -5,6 +5,8 @@ package cloud_profile
 
 import (
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/sdk-go/api/generated"
+	"github.com/deploifai/sdk-go/service/cloud_profile"
 	"github.com/spf13/cobra"
 )
 
@@ -14,17 +16,15 @@ var listCmd = &cobra.Command{
 	Short: "List cloud profiles in the current workspace.",
 	Run: func(cmd *cobra.Command, args []string) {
 		_context := ctx.GetContextValue(cmd)
-		api := _context.API
-		client := api.GetClient()
 		_config := _context.Config
 
-		data, err := client.GetCloudProfiles(cmd.Context(), _config.Workspace.Username, nil)
-		if err != nil {
-			cobra.CheckErr(api.ProcessError(err))
-		}
+		client := cloud_profile.NewFromConfig(*_context.ServiceClientConfig)
 
-		for i := range data.CloudProfiles {
-			cmd.Printf("%s <%s>\n", data.CloudProfiles[i].Name, data.CloudProfiles[i].Provider)
+		cloudProfiles, err := client.List(cmd.Context(), generated.AccountWhereUniqueInput{Username: &_config.Workspace.Username}, nil)
+		cobra.CheckErr(err)
+
+		for _, cp := range cloudProfiles {
+			cmd.Printf("%s <%s>\n", cp.GetName(), cp.GetProvider())
 		}
 	},
 }

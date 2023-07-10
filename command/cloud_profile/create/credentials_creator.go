@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/deploifai/cli-go/api/generated"
+	"github.com/deploifai/sdk-go/api/generated"
 )
 
 type CredentialsCreator interface {

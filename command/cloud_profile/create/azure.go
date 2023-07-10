@@ -7,9 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/deploifai/cli-go/api/generated"
-	"github.com/deploifai/cli-go/api/utils"
 	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/generated"
+	"github.com/deploifai/sdk-go/api/utils"
 	"os/exec"
 )
 
@@ -130,7 +130,7 @@ func (r *AzureCredentialsCreator) attemptToUseCredentials(sp *servicePrincipal) 
 				TenantID: sp.TenantId,
 			})
 		},
-		retryCount,
+		&retryCount, nil,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to use credentials after trying for %d times", retryCount)

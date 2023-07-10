@@ -6,6 +6,7 @@ package workspace
 import (
 	"errors"
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/sdk-go/service/workspace"
 
 	"github.com/spf13/cobra"
 )
@@ -21,20 +22,17 @@ var setCmd = &cobra.Command{
 		newWorkspace := args[0] // first arg
 
 		// verify workspace exists
-		api := ctx.GetContextValue(cmd).API
-		client := api.GetClient()
-		data, err := client.GetAccounts(cmd.Context())
-		if err != nil {
-			cobra.CheckErr(api.ProcessError(err))
-		}
+		cfg := ctx.GetContextValue(cmd).ServiceClientConfig
+		client := workspace.NewFromConfig(*cfg)
 
-		found := newWorkspace == data.Me.Account.Username
-		if !found {
-			for i := range data.Me.Teams {
-				if newWorkspace == data.Me.Teams[i].Account.Username {
-					found = true
-					break
-				}
+		workspaces, err := client.List(cmd.Context())
+		cobra.CheckErr(err)
+
+		var found bool
+		for _, workspace := range workspaces {
+			if newWorkspace == workspace.GetUsername() {
+				found = true
+				break
 			}
 		}
 

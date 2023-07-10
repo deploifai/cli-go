@@ -23,13 +23,13 @@ package command
 
 import (
 	"errors"
-	"github.com/deploifai/cli-go/api"
 	"github.com/deploifai/cli-go/command/auth"
 	"github.com/deploifai/cli-go/command/cloud_profile"
 	"github.com/deploifai/cli-go/command/command_config"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/cli-go/command/workspace"
-	"github.com/deploifai/cli-go/host"
+	"github.com/deploifai/sdk-go/config"
+	"github.com/deploifai/sdk-go/credentials"
 	"golang.org/x/net/context"
 	"os"
 	"path/filepath"
@@ -40,7 +40,8 @@ import (
 
 var rootViper *viper.Viper
 var cfgFile string
-var C command_config.Config
+var rootConfig command_config.Config
+var rootServiceClientConfig config.Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -50,7 +51,7 @@ var rootCmd = &cobra.Command{
 		`a lot of powerful tools to super-charge the ML development workflow.`,
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 
-		C.WriteStructIntoConfig(rootViper)
+		rootConfig.WriteStructIntoConfig(rootViper)
 
 		cfgFile := rootViper.ConfigFileUsed()
 
@@ -80,7 +81,7 @@ func Execute() {
 
 func init() {
 	// Add groups of commands
-	rootCmd.AddCommand(auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
+	rootCmd.AddCommand(versionCmd, auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
 
 	cobra.OnInitialize(initConfig)
 
@@ -133,15 +134,21 @@ func initConfig() {
 		// No error – do nothing
 	}
 
+	bgCtx := context.Background()
+
 	// Set defaults
 	command_config.SetDefaultConfig(rootViper)
 
 	// Unmarshal config into Struct
-	err = rootViper.Unmarshal(&C)
+	err = rootViper.Unmarshal(&rootConfig)
+	cobra.CheckErr(err)
+
+	// Create service client config
+	rootServiceClientConfig, err = config.LoadDefaultConfig(bgCtx, config.WithCredentials(credentials.NewCredentials(rootConfig.Auth.Token)))
 	cobra.CheckErr(err)
 
 	// Create root command context
-	value := ctx.NewContextValue(&C, api.New(host.Endpoint.GraphQL, C.Auth.Token))
-	_context := context.WithValue(context.Background(), "value", value)
+	value := ctx.NewContextValue(&rootConfig, &rootServiceClientConfig)
+	_context := context.WithValue(bgCtx, "value", value)
 	rootCmd.SetContext(_context)
 }
