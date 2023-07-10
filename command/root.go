@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 package command
 
-import "C"
 import (
 	"errors"
 	"github.com/deploifai/cli-go/command/auth"
