@@ -49,7 +49,7 @@ Install using scoop:
 
 ```shell
 # add bucket
-scoop bucket add deploifai
+scoop bucket add deploifai https://github.com/deploifai/scoop-deploifai.git
 
 # install
 scoop install deploifai
