@@ -125,9 +125,9 @@ func checkCollision(c context.Context, client cloud_profile.Client, whereAccount
 	return len(cloudProfiles) > 0, nil
 }
 
-func createCredentialsOnProvider(ctx context.Context, name string, provider generated.CloudProvider) (createInput generated.CloudProfileCreateInput, err error) {
+func createCredentialsOnProvider(ctx context.Context, name string, provider generated.CloudProvider) (createInput generated.CreateCloudProfileInput, err error) {
 
-	createInput = generated.CloudProfileCreateInput{
+	createInput = generated.CreateCloudProfileInput{
 		Name:     name,
 		Provider: provider,
 	}
@@ -154,7 +154,7 @@ func createCredentialsOnProvider(ctx context.Context, name string, provider gene
 	return createInput, err
 }
 
-func createCloudProfile(ctx context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, input generated.CloudProfileCreateInput) (cp generated.CloudProfileFragment, err error) {
+func createCloudProfile(ctx context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, input generated.CreateCloudProfileInput) (cp generated.CloudProfileFragment, err error) {
 
 	spinner := spinner_utils.NewAPICallSpinner()
 	spinner.Suffix = " Creating cloud profile... "

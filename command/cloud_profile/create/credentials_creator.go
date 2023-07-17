@@ -38,7 +38,7 @@ func NewCredentialsCreatorWrapper(ctx context.Context, provider generated.CloudP
 	return wrapper
 }
 
-func (r *CredentialsCreatorWrapper) populateInput(input *generated.CloudProfileCreateInput, credentials interface{}) {
+func (r *CredentialsCreatorWrapper) populateInput(input *generated.CreateCloudProfileInput, credentials interface{}) {
 
 	switch r.provider {
 	case generated.CloudProviderAws:
