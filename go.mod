@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.27
 	github.com/aws/aws-sdk-go-v2/service/iam v1.21.0
 	github.com/briandowns/spinner v1.23.0
-	github.com/deploifai/sdk-go v0.0.1
+	github.com/deploifai/sdk-go v0.0.2
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	golang.org/x/net v0.12.0
