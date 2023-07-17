@@ -17,11 +17,12 @@ import (
 )
 
 var cloudProvider generated.CloudProvider
+var notDefault = true
 
 // Cmd represents the create command
 var Cmd = &cobra.Command{
 	Use:   "create <name>",
-	Short: "Create a cloud profile in the current workspace.",
+	Short: "Create a default cloud profile in the current workspace.",
 	Long: `Create cloud credentials for a cloud provider to be used to provision resources in the current workspace.
 
 Currently supported cloud providers:
@@ -84,6 +85,8 @@ Currently supported cloud providers:
 			cobra.CheckErr(err)
 		}
 
+		createInput = setIsDefault(createInput)
+
 		cloudProfile, err := createCloudProfile(cmd.Context(), *client, whereAccount, createInput)
 		if err != nil {
 			cobra.CheckErr(err)
@@ -105,6 +108,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	Cmd.Flags().StringVarP((*string)(&cloudProvider), "provider", "p", "", "cloud provider, must be one of: AWS, AZURE, GCP")
+	Cmd.Flags().BoolVar(&notDefault, "not-default", false, "set this flag to create cloud profile without making it the default for the workspace")
 }
 
 func checkCollision(c context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, cloudProfileName string, provider generated.CloudProvider) (bool, error) {
@@ -152,6 +156,12 @@ func createCredentialsOnProvider(ctx context.Context, name string, provider gene
 	credentialsCreatorWrapper.populateInput(&createInput, credentials)
 
 	return createInput, err
+}
+
+func setIsDefault(createInput generated.CreateCloudProfileInput) generated.CreateCloudProfileInput {
+	isDefault := !notDefault
+	createInput.IsDefault = &isDefault
+	return createInput
 }
 
 func createCloudProfile(ctx context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput, input generated.CreateCloudProfileInput) (cp generated.CloudProfileFragment, err error) {
