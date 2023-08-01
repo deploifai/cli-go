@@ -35,7 +35,7 @@ var token string
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login using a personal access token.",
+	Short: "Login using a personal access token",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_ctx := ctx.GetContextValue(cmd)
 		_config := _ctx.Config

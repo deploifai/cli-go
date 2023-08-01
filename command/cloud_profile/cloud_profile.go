@@ -12,7 +12,7 @@ import (
 var Cmd = &cobra.Command{
 	Use:     "cloud-profile",
 	Aliases: []string{"cp"},
-	Short:   "Manage cloud profiles.",
+	Short:   "Manage cloud profiles",
 	Long:    `List, or create cloud profiles in the current workspace.`,
 }
 

@@ -10,7 +10,7 @@ const VERSION = "v0.5.1"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number.",
+	Short: "Print the version number",
 	Long:  `Print the version number of this CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Deploifai CLI %s\n", VERSION)

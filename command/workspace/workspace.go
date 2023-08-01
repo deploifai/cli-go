@@ -11,7 +11,7 @@ import (
 var Cmd = &cobra.Command{
 	Use:     "workspace",
 	Aliases: []string{"ws"},
-	Short:   "Manage workspaces.",
+	Short:   "Manage workspaces",
 	Long:    `List workspaces, or set, and show the current workspace.`,
 }
 

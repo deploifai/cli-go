@@ -13,7 +13,7 @@ import (
 // currentCmd represents the current command
 var currentCmd = &cobra.Command{
 	Use:   "current",
-	Short: "Show the current workspace set.",
+	Short: "Show the current workspace set",
 	Long: `Show the current workspace set.` +
 		` The current workspace is used for all commands that require a workspace.`,
 	RunE: func(cmd *cobra.Command, args []string) error {

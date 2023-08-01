@@ -30,7 +30,7 @@ import (
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Logout and remove the current authentication.",
+	Short: "Logout and remove the current authentication",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_config := ctx.GetContextValue(cmd).Config
 
