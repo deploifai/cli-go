@@ -19,7 +19,7 @@ type projectInList struct {
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List projects in the current workspace.",
+	Short: "List projects in the current workspace",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		_context := ctx.GetContextValue(cmd)

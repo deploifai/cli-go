@@ -21,7 +21,7 @@ var notDefaultCloudProfile = false
 // createCmd represents the create command
 var createCmd = &cobra.Command{
 	Use:   "create <name>",
-	Short: "Create a new project in the current workspace.",
+	Short: "Create a new project in the current workspace",
 	Long: `Create a new project on Deploifai for a new Machine Learning project.
 
 Every project requires a cloud profile to first create a project-specific dataset that can be used to store the results of experiments.

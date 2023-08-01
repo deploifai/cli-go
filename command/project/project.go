@@ -10,7 +10,7 @@ import (
 // Cmd represents the project command
 var Cmd = &cobra.Command{
 	Use:   "project",
-	Short: "Manage projects.",
+	Short: "Manage projects",
 	Long: `List, or create projects in the current workspace.
 
 A project on Deploifai refers to a collection of cloud resources that are managed together for a particular Machine Learning project. 
