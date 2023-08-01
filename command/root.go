@@ -27,6 +27,7 @@ import (
 	"github.com/deploifai/cli-go/command/cloud_profile"
 	"github.com/deploifai/cli-go/command/command_config"
 	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/command/project"
 	"github.com/deploifai/cli-go/command/workspace"
 	"github.com/deploifai/sdk-go/config"
 	"github.com/deploifai/sdk-go/credentials"
@@ -81,7 +82,7 @@ func Execute() {
 
 func init() {
 	// Add groups of commands
-	rootCmd.AddCommand(versionCmd, auth.Cmd, workspace.Cmd, cloud_profile.Cmd)
+	rootCmd.AddCommand(versionCmd, auth.Cmd, workspace.Cmd, cloud_profile.Cmd, project.Cmd)
 
 	cobra.OnInitialize(initConfig)
 
