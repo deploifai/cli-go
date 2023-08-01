@@ -28,7 +28,7 @@ import (
 // Cmd represents the auth command
 var Cmd = &cobra.Command{
 	Use:   "auth",
-	Short: "Manage authentication.",
+	Short: "Manage authentication",
 	Long:  `Login, logout, and check the current authentication status.`,
 }
 

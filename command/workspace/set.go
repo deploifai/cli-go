@@ -14,7 +14,7 @@ import (
 // setCmd represents the set command
 var setCmd = &cobra.Command{
 	Use:   "set <workspace>",
-	Short: "Set the current workspace used.",
+	Short: "Set the current workspace used",
 	Long: `Set the current workspace used.` +
 		` The current workspace is used for all commands that require a workspace.`,
 	Args: cobra.ExactArgs(1), // require exactly 1 arg

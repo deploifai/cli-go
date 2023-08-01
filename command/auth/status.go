@@ -15,7 +15,7 @@ import (
 // statusCmd represents the status command
 var statusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "Check login status.",
+	Short: "Check login status",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ctx := ctx.GetContextValue(cmd)
 		_config := _ctx.Config

@@ -13,7 +13,7 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List cloud profiles in the current workspace.",
+	Short: "List cloud profiles in the current workspace",
 	Run: func(cmd *cobra.Command, args []string) {
 		_context := ctx.GetContextValue(cmd)
 		_config := _context.Config

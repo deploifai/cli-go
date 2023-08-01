@@ -12,7 +12,7 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all accessible workspaces.",
+	Short: "List all accessible workspaces",
 	Long:  `List all workspaces that are accessible to the current user.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := *ctx.GetContextValue(cmd).ServiceClientConfig

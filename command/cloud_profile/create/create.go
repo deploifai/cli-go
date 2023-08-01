@@ -22,7 +22,7 @@ var notDefault = true
 // Cmd represents the create command
 var Cmd = &cobra.Command{
 	Use:   "create <name>",
-	Short: "Create a default cloud profile in the current workspace.",
+	Short: "Create a default cloud profile in the current workspace",
 	Long: `Create cloud credentials for a cloud provider to be used to provision resources in the current workspace.
 
 Currently supported cloud providers:
