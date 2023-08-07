@@ -73,7 +73,7 @@ func init() {
 	// is called directly, e.g.:
 	// createCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	createCmd.Flags().BoolVar(&notDefaultCloudProfile, "not-default-cp", false, "Use the default cloud profile in this workspace to create a new project")
+	createCmd.Flags().BoolVar(&notDefaultCloudProfile, "not-default-cp", false, "select a cloud profile instead of using the default cloud profile in this workspace to create a new project")
 }
 
 func getCloudProfile(c context.Context, client cloud_profile.Client, whereAccount generated.AccountWhereUniqueInput) (generated.CloudProfileFragment, error) {
