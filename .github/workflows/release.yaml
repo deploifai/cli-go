@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 100 # fetch latest 100 commits, so the last tag should be less than 100 commits in the past
+          fetch-depth: 0 # fetch all commits and tags
 
       - name: Setup Go
         uses: actions/setup-go@v4
