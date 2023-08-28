@@ -1,25 +1,24 @@
 /*
 Copyright © 2023 Sean Chok
 */
-package project
+package dataset
 
 import (
 	"github.com/spf13/cobra"
 )
 
-// Cmd represents the project command
+// Cmd represents the dataset command
 var Cmd = &cobra.Command{
-	Use:   "project",
-	Short: "Manage projects",
-	Long: `List, or create projects in the current workspace.
+	Use:   "dataset",
+	Short: "Manage, and interact with datasets",
+	Long: `Initialize, push, or pull datasets in the current workspace.
 
-A project on Deploifai refers to a collection of cloud resources that are managed together for a particular Machine Learning project. 
-For example, a project may contain a dataset, a training server, an experiment, and a model deployment.
+A dataset refers to a collection of files that are stored in a remote object storage on the cloud.
 `,
 }
 
 func init() {
-	Cmd.AddCommand(listCmd, createCmd, initCmd)
+	Cmd.AddCommand(initCmd, pushCmd, pullCmd)
 
 	// Here you will define your flags and configuration settings.
 
