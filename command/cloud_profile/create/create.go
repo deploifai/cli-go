@@ -68,7 +68,7 @@ Currently supported cloud providers:
 		}
 
 		_context := ctx.GetContextValue(cmd)
-		_config := _context.Config
+		_config := _context.Root
 		client := cloud_profile.NewFromConfig(*_context.ServiceClientConfig)
 		whereAccount := generated.AccountWhereUniqueInput{Username: &_config.Workspace.Username}
 

@@ -8,13 +8,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/deploifai/cli-go/command/command_config/project_config"
 	"github.com/deploifai/cli-go/command/ctx"
 	"github.com/deploifai/sdk-go/api/generated"
 	"github.com/deploifai/sdk-go/service/dataset"
 	"github.com/spf13/cobra"
 	"os"
-	"strings"
+	"path/filepath"
 )
+
+var name string
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -22,30 +25,33 @@ var initCmd = &cobra.Command{
 	Short: "Initialise a local directory as a dataset",
 	Long: `
 `,
-	Args: cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		_context := ctx.GetContextValue(cmd)
-		client := dataset.NewFromConfig(*_context.ServiceClientConfig)
 
-		whereAccount := generated.AccountWhereUniqueInput{Username: &_context.Config.Workspace.Username}
+		if !_context.Project.Project.IsInitialized() {
+			return project_config.ProjectNotInitializedError{}
+		}
+
+		projectId := _context.Project.Project.ID
+
+		client := dataset.NewFromConfig(*_context.ServiceClientConfig)
+		whereAccount := generated.AccountWhereUniqueInput{Username: &_context.Root.Workspace.Username}
 
 		var dataStorage generated.DataStorageFragment
 
-		if len(args) > 0 {
-			name := args[0]
-			projectName, dataStorageName, err := splitName(name)
+		if name != "" {
+			dataStorage, err = findDataStorage(cmd.Context(), *client, whereAccount, generated.DataStorageWhereInput{
+				Projects: &generated.ProjectListRelationFilter{Some: &generated.ProjectWhereInput{ID: &generated.StringFilter{Equals: &projectId}}},
+				Name:     &generated.StringFilter{Equals: &name},
+			})
 			if err != nil {
 				return err
 			}
-
-			fmt.Println(projectName, dataStorageName)
-			dataStorage, err = findDataStorage(cmd.Context(), *client, whereAccount, generated.DataStorageWhereInput{
-				Projects: &generated.ProjectListRelationFilter{Some: &generated.ProjectWhereInput{Name: &generated.StringFilter{Equals: &projectName}}},
-				Name:     &generated.StringFilter{Equals: &dataStorageName},
-			})
 		} else {
-			dataStorages, err := listDataStorage(cmd.Context(), *client, whereAccount)
+			dataStorages, err := listDataStorage(cmd.Context(), *client, whereAccount, generated.DataStorageWhereInput{
+				Projects: &generated.ProjectListRelationFilter{Some: &generated.ProjectWhereInput{ID: &generated.StringFilter{Equals: &projectId}}},
+			})
 			if err != nil {
 				return err
 			}
@@ -56,7 +62,7 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		return writeToConfig(dataStorage.GetID())
+		return saveInConfig(_context.Project, dataStorage.GetID())
 
 	},
 }
@@ -71,14 +77,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
 
-func splitName(name string) (string, string, error) {
-	split := strings.Split(name, "/")
-	if len(split) != 2 {
-		return "", "", errors.New("invalid project-name/dataset-name")
-	}
-	return split[0], split[1], nil
+	initCmd.Flags().StringVarP(&name, "dataset", "d", "", "cloud provider, must be one of: AWS, AZURE, GCP")
 }
 
 func findDataStorage(ctx context.Context, client dataset.Client, whereAccount generated.AccountWhereUniqueInput, whereDataStorage generated.DataStorageWhereInput) (generated.DataStorageFragment, error) {
@@ -102,25 +102,16 @@ func findDataStorage(ctx context.Context, client dataset.Client, whereAccount ge
 	return data[0], nil
 }
 
-func listDataStorage(ctx context.Context, client dataset.Client, whereAccount generated.AccountWhereUniqueInput) ([]generated.DataStorageFragment, error) {
+func listDataStorage(ctx context.Context, client dataset.Client, whereAccount generated.AccountWhereUniqueInput, whereDataStorage generated.DataStorageWhereInput) ([]generated.DataStorageFragment, error) {
 
 	status := generated.DataStorageStatusDeploySuccess
 
-	dataStorages, err := client.List(ctx, whereAccount, &generated.DataStorageWhereInput{
-		Status: &generated.EnumDataStorageStatusFilter{Equals: &status},
+	return client.List(ctx, whereAccount, &generated.DataStorageWhereInput{
+		And: []*generated.DataStorageWhereInput{
+			&whereDataStorage,
+			{Status: &generated.EnumDataStorageStatusFilter{Equals: &status}},
+		},
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	filtered := make([]generated.DataStorageFragment, 0)
-	for _, d := range dataStorages {
-		if len(d.GetProjects()) > 0 {
-			filtered = append(filtered, d)
-		}
-	}
-
-	return filtered, nil
 }
 
 func chooseDataStorage(dataStorages []generated.DataStorageFragment) (generated.DataStorageFragment, error) {
@@ -142,17 +133,23 @@ func chooseDataStorage(dataStorages []generated.DataStorageFragment) (generated.
 	return dataStorages[index], nil
 }
 
-func writeToConfig(dataStorageId string) error {
+func saveInConfig(projectConfig *project_config.Config, dataStorageId string) error {
+
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	// write to a config file
+	relativeDirectory, err := filepath.Rel(filepath.Dir(projectConfig.ConfigFile), currentWorkingDirectory)
+	if err != nil {
+		return err
+	}
+	relativeDirectory = filepath.ToSlash(relativeDirectory)
 
-	fmt.Println(dataStorageId)
-	fmt.Println(currentWorkingDirectory)
+	projectConfig.Datasets[dataStorageId] = project_config.Dataset{
+		ID:             dataStorageId,
+		LocalDirectory: relativeDirectory,
+	}
 
 	return nil
-
 }

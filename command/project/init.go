@@ -4,8 +4,18 @@ Copyright © 2023 Sean Chok
 package project
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/deploifai/cli-go/command/command_config/project_config"
+	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/sdk-go/api/generated"
+	"github.com/deploifai/sdk-go/service/project"
 	"github.com/spf13/cobra"
 )
+
+var name string
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -13,7 +23,31 @@ var initCmd = &cobra.Command{
 	Short: "Initialize a local directory as a project",
 	Long: `
 `,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		_context := ctx.GetContextValue(cmd)
+
+		if _context.Project.Project.IsInitialized() {
+			return errors.New(fmt.Sprintf("%s already exists, this directory is already initialised as a project", project_config.ConfigFilename))
+		}
+
+		client := project.NewFromConfig(*_context.ServiceClientConfig)
+
+		var project generated.ProjectFragment
+
+		if name != "" {
+			if project, err = findProject(cmd.Context(), *client, _context.Root.Workspace.Username, name); err != nil {
+				return err
+			}
+		} else {
+			project, err = chooseProject(cmd.Context(), *client, _context.Root.Workspace.Username)
+			if err != nil {
+				return err
+			}
+		}
+
+		// save in project config
+		_context.Project.Project.ID = project.ID
 
 		return nil
 	},
@@ -29,4 +63,54 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().StringVarP(&name, "project", "p", "", "name of project in the current workspace to initialise with")
+}
+
+func findProject(ctx context.Context, client project.Client, username string, projectName string) (project generated.ProjectFragment, err error) {
+
+	status := generated.ProjectStatusSetupSuccess
+
+	projects, err := client.List(ctx, generated.AccountWhereUniqueInput{Username: &username}, &generated.ProjectWhereInput{
+		Name:   &generated.StringFilter{Equals: &projectName},
+		Status: &generated.EnumProjectStatusFilter{Equals: &status},
+	})
+
+	if err != nil {
+		return project, err
+	}
+
+	if len(projects) == 0 {
+		return project, errors.New(fmt.Sprintf("project with name: %s not found", projectName))
+	}
+
+	return projects[0], nil
+}
+
+func chooseProject(ctx context.Context, client project.Client, username string) (project generated.ProjectFragment, err error) {
+
+	projects, err := client.List(ctx, generated.AccountWhereUniqueInput{Username: &username}, nil)
+	if err != nil {
+		return project, err
+	}
+
+	if len(projects) == 0 {
+		return project, errors.New("no project found")
+	}
+
+	options := make([]string, len(projects))
+	for i, project := range projects {
+		options[i] = project.Name
+	}
+
+	var index int
+	err = survey.AskOne(&survey.Select{
+		Message: "Choose a project",
+		Options: options,
+	}, &index, survey.WithPageSize(10))
+	if err != nil {
+		return project, err
+	}
+
+	return projects[index], nil
+
 }

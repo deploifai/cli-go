@@ -35,7 +35,7 @@ Every project requires a cloud profile to first create a project-specific datase
 
 		cloudProfileClient := cloud_profile.NewFromConfig(*_context.ServiceClientConfig)
 		projectClient := project.NewFromConfig(*_context.ServiceClientConfig)
-		whereAccount := generated.AccountWhereUniqueInput{Username: &_context.Config.Workspace.Username}
+		whereAccount := generated.AccountWhereUniqueInput{Username: &_context.Root.Workspace.Username}
 
 		cloudProfile, err := getCloudProfile(cmd.Context(), *cloudProfileClient, whereAccount)
 		if err != nil {

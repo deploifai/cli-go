@@ -32,7 +32,7 @@ If no path is specified, the current directory is used.
 		}
 
 		// get the remoteObjectPrefixes from srcAbsPaths
-		remoteObjectPrefixes, err := getRemoteObjectPrefixes(datasetDirPath, srcAbsPaths)
+		_, err = getRemoteObjectPrefixes(datasetDirPath, srcAbsPaths)
 		if err != nil {
 			return err
 		}
