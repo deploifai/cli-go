@@ -41,9 +41,6 @@ If no <path> is specified, the current directory is used.
 			return errors.New("the current directory is not initialised as a dataset")
 		}
 
-		fmt.Println("ds: ", ds)
-		fmt.Println("datasetDirPath: ", datasetDirPath)
-
 		// get the destination absolute paths from args
 		destAbsPaths, err := getAbsPaths(args)
 		if err != nil {
@@ -63,9 +60,6 @@ If no <path> is specified, the current directory is used.
 			return err
 		}
 
-		fmt.Println("destAbsPaths: ", destAbsPaths)
-		fmt.Println("remoteObjectPrefixes: ", remoteObjectPrefixes)
-
 		client := dataset.NewFromConfig(*_context.ServiceClientConfig)
 
 		ok, objectTypes, invalid, err := verifyRemoteObjectPrefixes(cmd.Context(), *client, ds.ID, args, remoteObjectPrefixes)
@@ -74,8 +68,6 @@ If no <path> is specified, the current directory is used.
 		} else if !ok {
 			return errors.New(fmt.Sprintf("no objects found in paths: %s", strings.Join(invalid, ", ")))
 		}
-
-		fmt.Println("objectTypes: ", objectTypes)
 
 		for i, path := range destAbsPaths {
 			destRelPath := "."
