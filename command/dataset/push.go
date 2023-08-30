@@ -4,9 +4,19 @@ Copyright © 2023 Sean Chok
 package dataset
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"github.com/deploifai/cli-go/command/command_config/project_config"
+	"github.com/deploifai/cli-go/command/ctx"
+	"github.com/deploifai/cli-go/utils/spinner_utils"
+	"github.com/deploifai/sdk-go/api/generated"
+	"github.com/deploifai/sdk-go/service/dataset"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // pushCmd represents the push command
@@ -22,8 +32,13 @@ If no path is specified, the current directory is used.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		// get the dataset directory path from config
-		datasetDirPath, err := getDatasetDirPath()
+		_context := ctx.GetContextValue(cmd)
+
+		// get the ds directory path from config
+		ds, datasetDirPath, err := getDataset(*_context.Project)
+		if err != nil {
+			return err
+		}
 
 		// get the srcAbsPaths from args
 		srcAbsPaths, err := getSrcAbsPaths(args)
@@ -31,10 +46,35 @@ If no path is specified, the current directory is used.
 			return err
 		}
 
-		// get the remoteObjectPrefixes from srcAbsPaths
-		_, err = getRemoteObjectPrefixes(datasetDirPath, srcAbsPaths)
+		ok, invalidArgs, err := verifyPaths(datasetDirPath, args, srcAbsPaths)
 		if err != nil {
 			return err
+		} else if !ok {
+			return errors.New(fmt.Sprintf("invalid paths: %s", strings.Join(invalidArgs, ", ")))
+		}
+
+		fmt.Println("ds: ", ds)
+		fmt.Println("datasetDirPath: ", datasetDirPath)
+
+		// get the remoteObjectPrefixes from srcAbsPaths
+		remoteObjectPrefixes, err := getRemoteObjectPrefixes(datasetDirPath, srcAbsPaths)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("srcAbsPaths: ", srcAbsPaths)
+		fmt.Println("remoteObjectPrefixes: ", remoteObjectPrefixes)
+
+		client := dataset.NewFromConfig(*_context.ServiceClientConfig)
+
+		for i, path := range srcAbsPaths {
+			srcRelPath := "."
+			if len(args) > 0 {
+				srcRelPath = args[i]
+			}
+			if err = push(cmd.Context(), *client, ds.ID, srcRelPath, path, remoteObjectPrefixes[i]); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -53,11 +93,64 @@ func init() {
 	// pushCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func getDatasetDirPath() (string, error) {
+func isSubDir(parent string, child string) (bool, error) {
 
-	// todo: look for dataset dir path in config
+	up := filepath.Join("..", string(filepath.Separator))
 
-	return ".", nil
+	rel, err := filepath.Rel(parent, child)
+	if err != nil {
+		return false, err
+	}
+
+	return !strings.HasPrefix(rel, up) && rel != "..", nil
+
+}
+
+func verifyPaths(datasetDirPath string, args []string, paths []string) (ok bool, invalidArgs []string, err error) {
+	for i, path := range paths {
+		// check if path exists
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			invalidArgs = append(invalidArgs, args[i])
+		} else if err != nil {
+			return false, nil, err
+		}
+
+		// check if path is a subdirectory of datasetDirPath
+		if ok, err := isSubDir(datasetDirPath, path); err != nil {
+			return false, nil, err
+		} else if !ok {
+			invalidArgs = append(invalidArgs, args[i])
+		}
+	}
+
+	if len(invalidArgs) > 0 {
+		return false, invalidArgs, nil
+	} else {
+		return true, nil, nil
+	}
+}
+
+func getDataset(projectConfig project_config.Config) (dataset project_config.Dataset, dirPath string, err error) {
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return dataset, dirPath, err
+	}
+
+	projectDir := filepath.Dir(projectConfig.ConfigFile)
+
+	for _, d := range projectConfig.Datasets {
+		datasetDirPath := filepath.Join(projectDir, filepath.FromSlash(d.LocalDirectory))
+
+		ok, err := isSubDir(datasetDirPath, cwd)
+		if err != nil {
+			return dataset, dirPath, err
+		} else if ok {
+			return d, datasetDirPath, nil
+		}
+	}
+
+	return dataset, dirPath, errors.New("no dataset found, the current directory is not initialised as a dataset")
 }
 
 func getSrcAbsPaths(relativePaths []string) ([]string, error) {
@@ -94,4 +187,89 @@ func getRemoteObjectPrefixes(datasetDirPath string, srcAbsPaths []string) (remot
 	}
 
 	return remoteObjectPrefix, nil
+}
+
+func push(ctx context.Context, client dataset.Client, dataStorageId string, srcRelPath string, srcAbsPath string, remoteObjectPrefix string) error {
+
+	fileInfo, err := os.Stat(srcAbsPath)
+	if err != nil {
+		return err
+	}
+
+	whereDataStorage := generated.DataStorageWhereUniqueInput{ID: &dataStorageId}
+
+	if fileInfo.IsDir() {
+		// upload directory
+		if err = pushDir(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix); err != nil {
+			return err
+		}
+	} else {
+		// upload file
+		if err = pushFile(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func pushDir(ctx context.Context, client dataset.Client, whereDataStorage generated.DataStorageWhereUniqueInput, srcRelPath string, srcAbsPath string, remoteObjectPrefix string) error {
+
+	fileCountChan := make(chan int, 1)
+	resultChan := make(chan interface{})
+	errChan := make(chan error, 1)
+	defer close(fileCountChan)
+	defer close(resultChan)
+
+	go func() {
+		if err := client.UploadDir(ctx,
+			whereDataStorage,
+			dataset.UploadDirInput{SrcAbsPath: srcAbsPath, RemoteObjectPrefix: remoteObjectPrefix},
+			fileCountChan,
+			resultChan,
+			nil,
+		); err != nil {
+			errChan <- err
+		}
+	}()
+
+	fileCount := <-fileCountChan
+	uploadedCount := 0
+
+	bar := progressbar.NewOptions(fileCount,
+		progressbar.OptionSetDescription(fmt.Sprintf("%s -> %s", srcRelPath, remoteObjectPrefix)),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionShowCount(),
+	)
+	defer fmt.Printf("\n")
+
+	for range resultChan {
+		uploadedCount++
+		err := bar.Add(1)
+		if err != nil {
+			return err
+		}
+		if uploadedCount == fileCount {
+			break
+		}
+		select {
+		case err := <-errChan:
+			return err
+		default: // do nothing
+		}
+	}
+
+	return nil
+}
+
+func pushFile(ctx context.Context, client dataset.Client, whereDataStorage generated.DataStorageWhereUniqueInput, srcRelPath string, srcAbsPath string, remoteObjectKey string) error {
+
+	spinner := spinner_utils.NewAPICallSpinner()
+	spinner.Prefix = fmt.Sprintf("Uploading %s -> %s ", srcRelPath, remoteObjectKey)
+	spinner.FinalMSG = fmt.Sprintf("Uploaded %s -> %s\n", srcRelPath, remoteObjectKey)
+
+	spinner.Start()
+	defer spinner.Stop()
+
+	return client.UploadFile(ctx, whereDataStorage, dataset.UploadFileInput{SrcAbspath: srcAbsPath, RemoteObjectKey: remoteObjectKey})
 }
