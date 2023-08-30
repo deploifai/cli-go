@@ -69,7 +69,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	initCmd.Flags().StringVarP(&name, "project", "p", "", "name of project in the current workspace to use")
+	initCmd.Flags().StringVarP(&name, "name", "n", "", "name of project in the current workspace to use")
 }
 
 func findProject(ctx context.Context, client project.Client, username string, projectName string) (project generated.ProjectFragment, err error) {

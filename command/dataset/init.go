@@ -93,7 +93,7 @@ func init() {
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	initCmd.Flags().StringVarP(&name, "dataset", "d", "", "name of dataset in the project to use")
+	initCmd.Flags().StringVarP(&name, "name", "n", "", "name of dataset in the project to use")
 }
 
 func findDataStorage(ctx context.Context, client dataset.Client, whereAccount generated.AccountWhereUniqueInput, whereDataStorage generated.DataStorageWhereInput) (generated.DataStorageFragment, error) {
