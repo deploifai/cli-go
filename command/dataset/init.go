@@ -21,9 +21,14 @@ var name string
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init [project-name/dataset-name]",
-	Short: "Initialise a local directory as a dataset",
-	Long: `
+	Use:   "init",
+	Short: "Initialise the current working directory as a dataset",
+	Long: `Initialise the current working directory as a dataset in the current project.
+
+This requires the current working directory or any of its parent directories to be initialised as a project first.
+Use the command "deploifai project init" to do that.
+
+If the current working directory or any of its parent directories is already initialised as a dataset, this command will fail.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -31,6 +36,13 @@ var initCmd = &cobra.Command{
 
 		if !_context.Project.Project.IsInitialized() {
 			return project_config.ProjectNotInitializedError{}
+		}
+
+		// verify if the current directory is already initialised as a dataset
+		if ok, _, _, err := getDataset(*_context.Project); err != nil {
+			return err
+		} else if ok {
+			return errors.New("the current directory is already initialised as a dataset")
 		}
 
 		projectId := _context.Project.Project.ID
@@ -56,7 +68,7 @@ var initCmd = &cobra.Command{
 				return err
 			}
 			if len(dataStorages) == 0 {
-				return errors.New("no dataset found")
+				return errors.New("no datasets found in this project")
 			} else {
 				dataStorage, err = chooseDataStorage(dataStorages)
 			}
@@ -78,7 +90,7 @@ func init() {
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	initCmd.Flags().StringVarP(&name, "dataset", "d", "", "cloud provider, must be one of: AWS, AZURE, GCP")
+	initCmd.Flags().StringVarP(&name, "dataset", "d", "", "name of dataset in the project to use")
 }
 
 func findDataStorage(ctx context.Context, client dataset.Client, whereAccount generated.AccountWhereUniqueInput, whereDataStorage generated.DataStorageWhereInput) (generated.DataStorageFragment, error) {
@@ -96,7 +108,7 @@ func findDataStorage(ctx context.Context, client dataset.Client, whereAccount ge
 	}
 
 	if len(data) == 0 {
-		return generated.DataStorageFragment{}, errors.New("no dataset found")
+		return generated.DataStorageFragment{}, errors.New(fmt.Sprintf("no dataset found with name %s in this project", name))
 	}
 
 	return data[0], nil

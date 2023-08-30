@@ -7,15 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/deploifai/cli-go/command/command_config/project_config"
 	"github.com/deploifai/cli-go/command/ctx"
-	"github.com/deploifai/cli-go/utils/spinner_utils"
 	"github.com/deploifai/sdk-go/api/generated"
 	"github.com/deploifai/sdk-go/service/dataset"
-	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -28,26 +24,29 @@ var pushCmd = &cobra.Command{
 This requires the local directory to be initialised as a dataset first.
 Use the command "deploifai dataset init" to do that.
 
-If no path is specified, the current directory is used.
+Each <path> can be a directory or a file.
+If no <path> is specified, the current directory is used.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		_context := ctx.GetContextValue(cmd)
 
-		// get the ds directory path from config
-		ds, datasetDirPath, err := getDataset(*_context.Project)
+		// get the dataset and directory path from config
+		ok, ds, datasetDirPath, err := getDataset(*_context.Project)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("the current directory is not initialised as a dataset")
+		}
+
+		// get the source absolute paths from args
+		srcAbsPaths, err := getAbsPaths(args)
 		if err != nil {
 			return err
 		}
 
-		// get the srcAbsPaths from args
-		srcAbsPaths, err := getSrcAbsPaths(args)
-		if err != nil {
-			return err
-		}
-
-		ok, invalidArgs, err := verifyPaths(datasetDirPath, args, srcAbsPaths)
-		if err != nil {
+		if ok, invalidArgs, err := verifyPushPaths(datasetDirPath, args, srcAbsPaths); err != nil {
 			return err
 		} else if !ok {
 			return errors.New(fmt.Sprintf("invalid paths: %s", strings.Join(invalidArgs, ", ")))
@@ -93,20 +92,7 @@ func init() {
 	// pushCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func isSubDir(parent string, child string) (bool, error) {
-
-	up := filepath.Join("..", string(filepath.Separator))
-
-	rel, err := filepath.Rel(parent, child)
-	if err != nil {
-		return false, err
-	}
-
-	return !strings.HasPrefix(rel, up) && rel != "..", nil
-
-}
-
-func verifyPaths(datasetDirPath string, args []string, paths []string) (ok bool, invalidArgs []string, err error) {
+func verifyPushPaths(datasetDirPath string, args []string, paths []string) (ok bool, invalidArgs []string, err error) {
 	for i, path := range paths {
 		// check if path exists
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -123,70 +109,7 @@ func verifyPaths(datasetDirPath string, args []string, paths []string) (ok bool,
 		}
 	}
 
-	if len(invalidArgs) > 0 {
-		return false, invalidArgs, nil
-	} else {
-		return true, nil, nil
-	}
-}
-
-func getDataset(projectConfig project_config.Config) (dataset project_config.Dataset, dirPath string, err error) {
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return dataset, dirPath, err
-	}
-
-	projectDir := filepath.Dir(projectConfig.ConfigFile)
-
-	for _, d := range projectConfig.Datasets {
-		datasetDirPath := filepath.Join(projectDir, filepath.FromSlash(d.LocalDirectory))
-
-		ok, err := isSubDir(datasetDirPath, cwd)
-		if err != nil {
-			return dataset, dirPath, err
-		} else if ok {
-			return d, datasetDirPath, nil
-		}
-	}
-
-	return dataset, dirPath, errors.New("no dataset found, the current directory is not initialised as a dataset")
-}
-
-func getSrcAbsPaths(relativePaths []string) ([]string, error) {
-	if len(relativePaths) == 0 {
-		currentWorkingDirectory, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-		return []string{currentWorkingDirectory}, nil
-	} else {
-		return convertToSrcAbsPaths(relativePaths)
-	}
-}
-
-func convertToSrcAbsPaths(paths []string) (targets []string, err error) {
-	for _, path := range paths {
-		absPath, err := filepath.Abs(path)
-		if err != nil {
-			return nil, err
-		}
-		targets = append(targets, absPath)
-	}
-
-	return targets, nil
-}
-
-func getRemoteObjectPrefixes(datasetDirPath string, srcAbsPaths []string) (remoteObjectPrefix []string, err error) {
-	for _, srcAbsPath := range srcAbsPaths {
-		relativePath, err := filepath.Rel(datasetDirPath, srcAbsPath)
-		if err != nil {
-			return nil, err
-		}
-		remoteObjectPrefix = append(remoteObjectPrefix, relativePath)
-	}
-
-	return remoteObjectPrefix, nil
+	return len(invalidArgs) == 0, invalidArgs, nil
 }
 
 func push(ctx context.Context, client dataset.Client, dataStorageId string, srcRelPath string, srcAbsPath string, remoteObjectPrefix string) error {
@@ -200,76 +123,38 @@ func push(ctx context.Context, client dataset.Client, dataStorageId string, srcR
 
 	if fileInfo.IsDir() {
 		// upload directory
-		if err = pushDir(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix); err != nil {
-			return err
-		}
+		return pushDir(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix)
 	} else {
 		// upload file
-		if err = pushFile(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix); err != nil {
-			return err
-		}
+		return pushFile(ctx, client, whereDataStorage, srcRelPath, srcAbsPath, remoteObjectPrefix)
 	}
-
-	return nil
 }
 
 func pushDir(ctx context.Context, client dataset.Client, whereDataStorage generated.DataStorageWhereUniqueInput, srcRelPath string, srcAbsPath string, remoteObjectPrefix string) error {
 
-	fileCountChan := make(chan int, 1)
-	resultChan := make(chan interface{})
-	errChan := make(chan error, 1)
-	defer close(fileCountChan)
-	defer close(resultChan)
-
-	go func() {
-		if err := client.UploadDir(ctx,
+	f := func(fileCountChan chan<- int, resultChan chan<- interface{}) error {
+		return client.UploadDir(ctx,
 			whereDataStorage,
 			dataset.UploadDirInput{SrcAbsPath: srcAbsPath, RemoteObjectPrefix: remoteObjectPrefix},
 			fileCountChan,
 			resultChan,
 			nil,
-		); err != nil {
-			errChan <- err
-		}
-	}()
-
-	fileCount := <-fileCountChan
-	uploadedCount := 0
-
-	bar := progressbar.NewOptions(fileCount,
-		progressbar.OptionSetDescription(fmt.Sprintf("%s -> %s", srcRelPath, remoteObjectPrefix)),
-		progressbar.OptionFullWidth(),
-		progressbar.OptionShowCount(),
-	)
-	defer fmt.Printf("\n")
-
-	for range resultChan {
-		uploadedCount++
-		err := bar.Add(1)
-		if err != nil {
-			return err
-		}
-		if uploadedCount == fileCount {
-			break
-		}
-		select {
-		case err := <-errChan:
-			return err
-		default: // do nothing
-		}
+		)
 	}
 
-	return nil
+	return runDir(f, fmt.Sprintf("%s -> %s", srcRelPath, remoteObjectPrefix))
+
 }
 
 func pushFile(ctx context.Context, client dataset.Client, whereDataStorage generated.DataStorageWhereUniqueInput, srcRelPath string, srcAbsPath string, remoteObjectKey string) error {
 
-	spinner := spinner_utils.NewAPICallSpinner()
-	spinner.Prefix = fmt.Sprintf("Uploading %s -> %s ", srcRelPath, remoteObjectKey)
-	spinner.FinalMSG = fmt.Sprintf("Uploaded %s -> %s\n", srcRelPath, remoteObjectKey)
+	f := func() error {
+		return client.UploadFile(ctx, whereDataStorage, dataset.UploadFileInput{SrcAbspath: srcAbsPath, RemoteObjectKey: remoteObjectKey})
+	}
 
-	spinner.Start()
-	defer spinner.Stop()
+	prefixMessage := fmt.Sprintf("Uploading %s -> %s ", srcRelPath, remoteObjectKey)
+	finalMessage := fmt.Sprintf("Uploaded %s -> %s", srcRelPath, remoteObjectKey)
 
-	return client.UploadFile(ctx, whereDataStorage, dataset.UploadFileInput{SrcAbspath: srcAbsPath, RemoteObjectKey: remoteObjectKey})
+	return runFile(f, prefixMessage, finalMessage)
+
 }
