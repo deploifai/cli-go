@@ -21,11 +21,13 @@ var name string
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the current working directory as a project",
-	Long: `Sets up the current working directory as a project in the current workspace.
+	Long: `Initialize the current working directory as a project in the current workspace.
 
 This creates a deploifai.toml file in the current working directory, which is used to store information related to the project.
 This includes datasets under the project, and other project related information.
 Do not delete this file, as it is used by the CLI to determine the project context.
+
+If this directory or any of its parent directories is already initialised as a project, this command will fail.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 

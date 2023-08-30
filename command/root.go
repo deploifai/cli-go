@@ -64,8 +64,6 @@ var rootCmd = &cobra.Command{
 		err := writeConfig(rootViper, 0755, 0600)
 		cobra.CheckErr(err)
 
-		fmt.Println("Project config:", projectConfig)
-
 		// if the project in project config is not empty
 		// write to file
 		if projectConfig.Project.ID != "" {
@@ -87,7 +85,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&rootConfigFile, "config", "", "path to config file (default to $HOME/.config/deploifai/config.toml)")
+	defaultConfigFile := filepath.Join("$HOME", ".config", "deploifai", "config.toml")
+	rootCmd.PersistentFlags().StringVar(&rootConfigFile, "config", "", fmt.Sprintf("path to config file (default to %s)", defaultConfigFile))
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -106,8 +105,6 @@ func initConfigs() {
 	// Initialize project config
 	err = initProjectConfig()
 	cobra.CheckErr(err)
-
-	fmt.Println("after init:", projectConfig)
 
 	// Create service client config
 	rootServiceClientConfig, err = config.LoadDefaultConfig(bgCtx, config.WithCredentials(credentials.NewCredentials(rootConfig.Auth.Token)))
@@ -242,7 +239,6 @@ func findProjectConfigDir(dir string, configFilename string) (string, error) {
 func writeConfig(v *viper.Viper, dirPerm os.FileMode, filePerm os.FileMode) error {
 
 	cfgFile := v.ConfigFileUsed()
-	fmt.Println("Writing config to", cfgFile)
 
 	// Create config file if it doesn't exist
 	if _, err := os.Stat(cfgFile); os.IsNotExist(err) {
