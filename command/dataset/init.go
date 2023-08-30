@@ -71,6 +71,9 @@ If the current working directory or any of its parent directories is already ini
 				return errors.New("no datasets found in this project")
 			} else {
 				dataStorage, err = chooseDataStorage(dataStorages)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -130,7 +133,7 @@ func chooseDataStorage(dataStorages []generated.DataStorageFragment) (generated.
 
 	options := make([]string, len(dataStorages))
 	for i, d := range dataStorages {
-		options[i] = fmt.Sprintf("%s/%s <%s>", d.GetProjects()[0].GetName(), d.GetName(), d.GetCloudProfile().GetProvider())
+		options[i] = fmt.Sprintf("%s <%s>", d.GetName(), d.GetCloudProfile().GetProvider())
 	}
 
 	var index int
