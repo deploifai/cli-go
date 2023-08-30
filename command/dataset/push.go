@@ -52,17 +52,11 @@ If no <path> is specified, the current directory is used.
 			return errors.New(fmt.Sprintf("invalid paths: %s", strings.Join(invalidArgs, ", ")))
 		}
 
-		fmt.Println("ds: ", ds)
-		fmt.Println("datasetDirPath: ", datasetDirPath)
-
 		// get the remoteObjectPrefixes from srcAbsPaths
 		remoteObjectPrefixes, err := getRemoteObjectPrefixes(datasetDirPath, srcAbsPaths)
 		if err != nil {
 			return err
 		}
-
-		fmt.Println("srcAbsPaths: ", srcAbsPaths)
-		fmt.Println("remoteObjectPrefixes: ", remoteObjectPrefixes)
 
 		client := dataset.NewFromConfig(*_context.ServiceClientConfig)
 
