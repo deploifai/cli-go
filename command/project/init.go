@@ -20,8 +20,12 @@ var name string
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize a local directory as a project",
-	Long: `
+	Short: "Initialize the current working directory as a project",
+	Long: `Sets up the current working directory as a project in the current workspace.
+
+This creates a deploifai.toml file in the current working directory, which is used to store information related to the project.
+This includes datasets under the project, and other project related information.
+Do not delete this file, as it is used by the CLI to determine the project context.
 `,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -63,7 +67,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	initCmd.Flags().StringVarP(&name, "project", "p", "", "name of project in the current workspace to initialise with")
+	initCmd.Flags().StringVarP(&name, "project", "p", "", "name of project in the current workspace to use")
 }
 
 func findProject(ctx context.Context, client project.Client, username string, projectName string) (project generated.ProjectFragment, err error) {
