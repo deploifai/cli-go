@@ -1,4 +1,4 @@
-package command_config
+package root_config
 
 type Auth struct {
 	Username string `toml:"username"`

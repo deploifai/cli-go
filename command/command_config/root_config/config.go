@@ -1,4 +1,4 @@
-package command_config
+package root_config
 
 import (
 	"github.com/spf13/viper"
@@ -11,16 +11,16 @@ type Config struct {
 }
 
 func SetDefaultConfig(v *viper.Viper) {
-	v.SetDefault("auth", map[string]interface{}{
-		"username": "",
-		"token":    "",
+	v.SetDefault("auth", Auth{
+		Username: "",
+		Token:    "",
 	})
-	v.SetDefault("workspace", map[string]interface{}{
-		"username": "",
+	v.SetDefault("workspace", Workspace{
+		Username: "",
 	})
 }
 
-func (c *Config) WriteStructIntoConfig(v *viper.Viper) {
+func (c *Config) WriteStructIntoViper(v *viper.Viper) {
 	v.Set("auth", c.Auth)
 	v.Set("workspace", c.Workspace)
 }

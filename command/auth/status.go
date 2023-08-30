@@ -18,7 +18,7 @@ var statusCmd = &cobra.Command{
 	Short: "Check login status",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ctx := ctx.GetContextValue(cmd)
-		_config := _ctx.Config
+		_config := _ctx.Root
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			cmd.Println("Not logged in.")

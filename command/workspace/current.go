@@ -17,7 +17,7 @@ var currentCmd = &cobra.Command{
 	Long: `Show the current workspace set.` +
 		` The current workspace is used for all commands that require a workspace.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_config := ctx.GetContextValue(cmd).Config
+		_config := ctx.GetContextValue(cmd).Root
 
 		if _config.Workspace.Username == "" {
 			return errors.New("no workspace set")

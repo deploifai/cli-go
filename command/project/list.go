@@ -23,7 +23,7 @@ var listCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		_context := ctx.GetContextValue(cmd)
-		_config := _context.Config
+		_config := _context.Root
 
 		projectClient := project.NewFromConfig(*_context.ServiceClientConfig)
 

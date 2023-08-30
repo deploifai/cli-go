@@ -41,7 +41,7 @@ var setCmd = &cobra.Command{
 		}
 
 		// save new workspace to config
-		_config := ctx.GetContextValue(cmd).Config
+		_config := ctx.GetContextValue(cmd).Root
 		_config.Workspace.Username = newWorkspace
 
 		cmd.Println(newWorkspace)

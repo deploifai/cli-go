@@ -5,3 +5,5 @@ bin/
 schema.gql
 
 dist/
+
+.DS_Store

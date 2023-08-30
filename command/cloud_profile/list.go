@@ -16,7 +16,7 @@ var listCmd = &cobra.Command{
 	Short: "List cloud profiles in the current workspace",
 	Run: func(cmd *cobra.Command, args []string) {
 		_context := ctx.GetContextValue(cmd)
-		_config := _context.Config
+		_config := _context.Root
 
 		client := cloud_profile.NewFromConfig(*_context.ServiceClientConfig)
 

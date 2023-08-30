@@ -38,7 +38,7 @@ var loginCmd = &cobra.Command{
 	Short: "Login using a personal access token",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_ctx := ctx.GetContextValue(cmd)
-		_config := _ctx.Config
+		_config := _ctx.Root
 
 		if _config.Auth.Username != "" && _config.Auth.Token != "" {
 			return errors.New("already logged in, try logging out first")

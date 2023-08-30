@@ -32,7 +32,7 @@ var logoutCmd = &cobra.Command{
 	Use:   "logout",
 	Short: "Logout and remove the current authentication",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_config := ctx.GetContextValue(cmd).Config
+		_config := ctx.GetContextValue(cmd).Root
 
 		if _config.Auth.Username == "" || _config.Auth.Token == "" {
 			return errors.New("you are not logged in")
