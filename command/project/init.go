@@ -94,7 +94,11 @@ func findProject(ctx context.Context, client project.Client, username string, pr
 
 func chooseProject(ctx context.Context, client project.Client, username string) (project generated.ProjectFragment, err error) {
 
-	projects, err := client.List(ctx, generated.AccountWhereUniqueInput{Username: &username}, nil)
+	status := generated.ProjectStatusSetupSuccess
+
+	projects, err := client.List(ctx,
+		generated.AccountWhereUniqueInput{Username: &username},
+		&generated.ProjectWhereInput{Status: &generated.EnumProjectStatusFilter{Equals: &status}})
 	if err != nil {
 		return project, err
 	}
