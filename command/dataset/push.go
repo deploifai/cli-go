@@ -18,8 +18,8 @@ import (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push [<path>...]",
-	Short: "Push local files to a dataset",
-	Long: `Upload local files to a dataset.
+	Short: "Push files or directories to a dataset",
+	Long: `Upload files or directories from the local filesystem to a dataset.
 
 This requires the local directory to be initialised as a dataset first.
 Use the command "deploifai dataset init" to do that.

@@ -19,8 +19,8 @@ import (
 // pullCmd represents the pull command
 var pullCmd = &cobra.Command{
 	Use:   "pull [<path>...]",
-	Short: "Pull files from a dataset to a local filesystem",
-	Long: `Download files from a dataset to a local filesystem.
+	Short: "Pull files or directories from a dataset",
+	Long: `Download files or directories from a dataset to the local filesystem.
 
 This requires the local directory to be initialised as a dataset first.
 Use the command "deploifai dataset init" to do that.
