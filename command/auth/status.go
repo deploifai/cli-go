@@ -27,11 +27,11 @@ var statusCmd = &cobra.Command{
 
 		client := _ctx.ServiceClientConfig.API.GetRestClient()
 
-		loginUri := host.Endpoint.Rest.Auth.Login
+		checkUri := host.Endpoint.Rest.Auth.Check
 
 		var jsonData = []byte(fmt.Sprintf(`{"username": "%s"}`, _config.Auth.Username))
 
-		request, err := client.NewRequest("POST", loginUri, api.RequestHeaders{
+		request, err := client.NewRequest("POST", checkUri, api.RequestHeaders{
 			api.WithContentType(api.ContentTypeJson),
 		}, jsonData)
 		cobra.CheckErr(err)
@@ -44,7 +44,7 @@ var statusCmd = &cobra.Command{
 		} else if response.StatusCode == 401 {
 			cmd.Println("Invalid username or token. Please login again.")
 		} else {
-			cobra.CheckErr(errors.New("could not check login status with server"))
+			cobra.CheckErr(errors.New(fmt.Sprintf("could not check login status with server error status: %s", response.Status)))
 		}
 
 	},
